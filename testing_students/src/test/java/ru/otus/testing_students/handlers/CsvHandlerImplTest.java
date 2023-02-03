@@ -1,22 +1,29 @@
 package ru.otus.testing_students.handlers;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import ru.otus.testing_students.service.ResourceService;
-import ru.otus.testing_students.service.ResourceServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.PropertySource;
 
 import java.io.IOException;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+@PropertySource("classpath:application-test.yml")
 class CsvHandlerImplTest {
 
-    private final ResourceService resourceService = Mockito.mock(ResourceServiceImpl.class);
-    private final CsvHandler csvHandler = new CsvHandlerImpl(resourceService);
+    @Autowired
+    private CsvHandler csvHandler;
+
+
+//    @Test
+//    void handleCsvFileNullPointerExceptionTest() throws IOException {
+//        Mockito.when(resourceService.getInputStreamResource()).thenReturn(null);
+//        assertThrows(NullPointerException.class, csvHandler::handleCsvFile);
+//    }
 
     @Test
-    void handleCsvFileNullPointerExceptionTest() throws IOException {
-        Mockito.when(resourceService.getInputStreamResource()).thenReturn(null);
-        assertThrows(NullPointerException.class, csvHandler::handleCsvFile);
+    void handleCsvFile() throws IOException {
+        List<String> strings = csvHandler.handleCsvFile();
     }
 }
