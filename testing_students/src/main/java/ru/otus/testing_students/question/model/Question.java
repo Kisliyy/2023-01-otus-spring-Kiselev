@@ -1,9 +1,6 @@
 package ru.otus.testing_students.question.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import ru.otus.testing_students.answer.model.Answer;
 
 import java.util.List;
@@ -13,6 +10,7 @@ import java.util.stream.Collectors;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Question {
 
     private Long id;

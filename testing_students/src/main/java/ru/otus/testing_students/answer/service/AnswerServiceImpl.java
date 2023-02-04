@@ -19,10 +19,10 @@ public class AnswerServiceImpl implements AnswerService {
                 .collect(Collectors.toList());
         List<Answer> answers = new ArrayList<>(1);
         if (stringAnswers.size() > 1) {
-            for (String stringAnswer : stringAnswers) {
-                Answer answer = new Answer(stringAnswer);
-                answers.add(answer);
-            }
+            stringAnswers
+                    .stream()
+                    .map(Answer::new)
+                    .forEach(answers::add);
         }
         return answers;
     }
