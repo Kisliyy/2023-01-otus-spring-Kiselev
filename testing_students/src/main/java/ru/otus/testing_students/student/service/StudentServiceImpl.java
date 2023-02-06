@@ -13,7 +13,7 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public Student createStudent(String firstName, String lastName, int countWrightAnswerStudent) {
-        boolean isPasses = countWrightAnswerStudent > appConfig.getCountAnswer();
+        boolean isPasses = countWrightAnswerStudent >= appConfig.getCountAnswer();
         return Student.builder()
                 .firstName(firstName)
                 .lastName(lastName)

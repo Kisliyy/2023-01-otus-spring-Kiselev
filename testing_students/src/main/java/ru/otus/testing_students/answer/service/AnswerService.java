@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface AnswerService {
 
-    List<Answer> getAnswer(String lineAnswers);
+    List<Answer> convertStringToAnswers(String lineAnswers);
 
-    Answer getWrightAnswer(List<Answer> answers, String lineWrightAnswer);
+    Answer getRightAnswer(List<Answer> answersOption, String lineRightAnswer);
 }

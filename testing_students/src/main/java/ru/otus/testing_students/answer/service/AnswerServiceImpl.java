@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 public class AnswerServiceImpl implements AnswerService {
 
     @Override
-    public List<Answer> getAnswer(String lineAnswers) {
+    public List<Answer> convertStringToAnswers(String lineAnswers) {
         List<String> stringAnswers = Arrays
                 .stream(lineAnswers.split(","))
                 .map(String::trim)
@@ -28,10 +28,10 @@ public class AnswerServiceImpl implements AnswerService {
     }
 
     @Override
-    public Answer getWrightAnswer(List<Answer> answers, String lineWrightAnswer) {
-        final String wrightAnswer = lineWrightAnswer.trim();
-        if (answers.size() > 1) {
-            return answers
+    public Answer getRightAnswer(List<Answer> answersOption, String lineRightAnswer) {
+        final String wrightAnswer = lineRightAnswer.trim();
+        if (answersOption.size() > 1) {
+            return answersOption
                     .stream()
                     .filter(answer -> answer.getAnswer().equals(wrightAnswer))
                     .findFirst()

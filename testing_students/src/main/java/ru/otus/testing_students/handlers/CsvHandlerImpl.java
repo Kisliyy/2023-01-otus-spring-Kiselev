@@ -2,6 +2,7 @@ package ru.otus.testing_students.handlers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.otus.testing_students.exceptions.HandleException;
 import ru.otus.testing_students.service.resource.ResourceService;
 
 import java.io.IOException;
@@ -21,7 +22,7 @@ public class CsvHandlerImpl implements CsvHandler {
     }
 
     @Override
-    public List<String> handleCsvFile() throws IOException {
+    public List<String> handleCsvFile() {
         List<String> records = new ArrayList<>(0);
         try (InputStream source = resourceService.getInputStreamResource();
              Scanner scanner = new Scanner(source)) {
@@ -29,6 +30,8 @@ public class CsvHandlerImpl implements CsvHandler {
                 records.add(scanner.nextLine());
             }
             return records;
+        } catch (IOException e) {
+            throw new HandleException(e);
         }
     }
 

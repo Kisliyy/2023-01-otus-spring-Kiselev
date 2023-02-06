@@ -2,6 +2,7 @@ package ru.otus.testing_students.service.testing;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.otus.testing_students.handlers.CsvHandler;
 import ru.otus.testing_students.question.model.Question;
 import ru.otus.testing_students.question.service.QuestionService;
 import ru.otus.testing_students.service.Terminal;
@@ -16,6 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TestingStudentsService implements TestingService {
 
+    private final CsvHandler csvHandler;
     private final QuestionService questionService;
     private final Terminal terminal;
     private final StudentService studentService;
@@ -26,7 +28,8 @@ public class TestingStudentsService implements TestingService {
         String firstName = terminal.readLine();
         terminal.println("Enter a last name:");
         String lastName = terminal.readLine();
-        List<Question> questionsWithAnswers = questionService.getQuestionsWithAnswers();
+        List<String> lines = csvHandler.handleCsvFile();
+        List<Question> questionsWithAnswers = questionService.convertStringsToQuestions(lines);
         List<String> studentAnswers = new ArrayList<>();
         for (Question question : questionsWithAnswers) {
             terminal.println(question);

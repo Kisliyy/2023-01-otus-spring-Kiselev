@@ -3,8 +3,10 @@ package ru.otus.testing_students.service.testing;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
+import org.mockito.stubbing.OngoingStubbing;
 import ru.otus.testing_students.answer.model.Answer;
 import ru.otus.testing_students.config.AbstractTestConfig;
+import ru.otus.testing_students.handlers.CsvHandler;
 import ru.otus.testing_students.question.model.Question;
 import ru.otus.testing_students.question.service.QuestionService;
 import ru.otus.testing_students.service.Terminal;
@@ -24,8 +26,9 @@ class TestingStudentsServiceTest extends AbstractTestConfig {
     private final QuestionService questionService = mock(QuestionService.class);
     private final Terminal terminal = mock(Terminal.class);
     private final StudentService studentService = mock(StudentService.class);
+    private final CsvHandler csvHandler = mock(CsvHandler.class);
 
-    private final TestingService testingStudentsService = new TestingStudentsService(questionService, terminal, studentService);
+    private final TestingService testingStudentsService = new TestingStudentsService(csvHandler, questionService, terminal, studentService);
 
     @Test
     void conductSurveySequenceMethodCallTest() throws IOException {
@@ -54,20 +57,22 @@ class TestingStudentsServiceTest extends AbstractTestConfig {
                 .countRightAnswers(countRightAnswer)
                 .isPassed(isPassed)
                 .build();
-        when(terminal.readLine()).thenReturn(firstName, lastName, answer);
 
-        when(questionService.getQuestionsWithAnswers()).thenReturn(questionList);
+        when(terminal.readLine()).thenReturn(firstName, lastName, answer);
+        when(csvHandler.handleCsvFile()).thenReturn(Collections.emptyList());
+        when(questionService.convertStringsToQuestions(anyList())).thenReturn(questionList);
         when(questionService.getCountRightAnswers(anyList(), anyList())).thenReturn(countRightAnswer);
         when(studentService.createStudent(firstName, lastName, countRightAnswer)).thenReturn(student);
 
         testingStudentsService.conductSurvey();
 
-        InOrder inOrder = Mockito.inOrder(terminal, questionService, studentService);
+        InOrder inOrder = Mockito.inOrder(terminal, questionService, studentService, csvHandler);
         inOrder.verify(terminal).println("Enter a first name:");
         inOrder.verify(terminal).readLine();
         inOrder.verify(terminal).println("Enter a last name:");
         inOrder.verify(terminal).readLine();
-        inOrder.verify(questionService).getQuestionsWithAnswers();
+        inOrder.verify(csvHandler).handleCsvFile();
+        inOrder.verify(questionService).convertStringsToQuestions(anyList());
         inOrder.verify(terminal).println(qs);
         inOrder.verify(terminal).println("If you have several answer options, select one of them and enter it:");
         inOrder.verify(terminal).readLine();
