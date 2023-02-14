@@ -1,15 +1,20 @@
 package ru.otus.testing_students;
 
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import ru.otus.testing_students.handlers.CsvHandler;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.PropertySource;
+import ru.otus.testing_students.service.testing.TestingService;
 
 import java.io.IOException;
 
+@PropertySource("classpath:application.properties")
+@ComponentScan("ru.otus.testing_students")
 public class TestingStudentsApplication {
     public static void main(String[] args) throws IOException {
-        ClassPathXmlApplicationContext context =
-                new ClassPathXmlApplicationContext("/spring-context.xml");
-        CsvHandler csvHandler = context.getBean(CsvHandler.class);
-        csvHandler.handleCsvFile().forEach(System.out::println);
+        AnnotationConfigApplicationContext context =
+                new AnnotationConfigApplicationContext(TestingStudentsApplication.class);
+
+        TestingService surveyService = context.getBean(TestingService.class);
+        surveyService.conductSurvey();
     }
 }
