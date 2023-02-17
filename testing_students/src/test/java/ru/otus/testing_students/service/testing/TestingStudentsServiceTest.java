@@ -3,13 +3,15 @@ package ru.otus.testing_students.service.testing;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
-import org.mockito.stubbing.OngoingStubbing;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import ru.otus.testing_students.answer.model.Answer;
 import ru.otus.testing_students.config.AbstractTestConfig;
 import ru.otus.testing_students.handlers.CsvHandler;
 import ru.otus.testing_students.question.model.Question;
 import ru.otus.testing_students.question.service.QuestionService;
-import ru.otus.testing_students.service.Terminal;
+import ru.otus.testing_students.service.message.MessageSourceService;
+import ru.otus.testing_students.service.terminal.IOService;
 import ru.otus.testing_students.student.model.Student;
 import ru.otus.testing_students.student.service.StudentService;
 
@@ -17,18 +19,25 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
+
 
 class TestingStudentsServiceTest extends AbstractTestConfig {
 
-    private final QuestionService questionService = mock(QuestionService.class);
-    private final Terminal terminal = mock(Terminal.class);
-    private final StudentService studentService = mock(StudentService.class);
-    private final CsvHandler csvHandler = mock(CsvHandler.class);
+    @MockBean
+    private QuestionService questionService;
+    @MockBean
+    private IOService ioService;
+    @MockBean
+    private StudentService studentService;
+    @MockBean
+    private CsvHandler csvHandler;
 
-    private final TestingService testingStudentsService = new TestingStudentsService(csvHandler, questionService, terminal, studentService);
+    @MockBean
+    private MessageSourceService messageSourceService;
+    @Autowired
+    private TestingService testingStudentsService;
 
     @Test
     void conductSurveySequenceMethodCallTest() throws IOException {
@@ -58,7 +67,12 @@ class TestingStudentsServiceTest extends AbstractTestConfig {
                 .isPassed(isPassed)
                 .build();
 
-        when(terminal.readLine()).thenReturn(firstName, lastName, answer);
+        when(messageSourceService.getLocalizationMessage(any()))
+                .thenReturn("Enter a first name:", "Enter a last name:", "If you have several answer options, select one of them and enter it:");
+        when(messageSourceService.getLocalizationQuestionMessage(qs)).thenReturn(qs.toString());
+        when(messageSourceService.getLocalizationStudentMessage(student)).thenReturn(student.toString());
+
+        when(ioService.readLine()).thenReturn(firstName, lastName, answer);
         when(csvHandler.handleCsvFile()).thenReturn(Collections.emptyList());
         when(questionService.convertStringsToQuestions(anyList())).thenReturn(questionList);
         when(questionService.getCountRightAnswers(anyList(), anyList())).thenReturn(countRightAnswer);
@@ -66,18 +80,29 @@ class TestingStudentsServiceTest extends AbstractTestConfig {
 
         testingStudentsService.conductSurvey();
 
-        InOrder inOrder = Mockito.inOrder(terminal, questionService, studentService, csvHandler);
-        inOrder.verify(terminal).println("Enter a first name:");
-        inOrder.verify(terminal).readLine();
-        inOrder.verify(terminal).println("Enter a last name:");
-        inOrder.verify(terminal).readLine();
+        InOrder inOrder = Mockito.inOrder(ioService, questionService, studentService, csvHandler, messageSourceService);
+        inOrder.verify(messageSourceService).getLocalizationMessage(anyString());
+        inOrder.verify(ioService).println("Enter a first name:");
+        inOrder.verify(ioService).readLine();
+
+        inOrder.verify(messageSourceService).getLocalizationMessage(anyString());
+        inOrder.verify(ioService).println("Enter a last name:");
+        inOrder.verify(ioService).readLine();
+
         inOrder.verify(csvHandler).handleCsvFile();
+
         inOrder.verify(questionService).convertStringsToQuestions(anyList());
-        inOrder.verify(terminal).println(qs);
-        inOrder.verify(terminal).println("If you have several answer options, select one of them and enter it:");
-        inOrder.verify(terminal).readLine();
+
+        inOrder.verify(messageSourceService).getLocalizationQuestionMessage(qs);
+        inOrder.verify(ioService).println(qs.toString());
+
+        inOrder.verify(messageSourceService).getLocalizationMessage(anyString());
+        inOrder.verify(ioService).println("If you have several answer options, select one of them and enter it:");
+        inOrder.verify(ioService).readLine();
+
         inOrder.verify(questionService).getCountRightAnswers(anyList(), anyList());
         inOrder.verify(studentService).createStudent(firstName, lastName, countRightAnswer);
-        inOrder.verify(terminal).println(student);
+        inOrder.verify(messageSourceService).getLocalizationStudentMessage(student);
+        inOrder.verify(ioService).println(student.toString());
     }
 }

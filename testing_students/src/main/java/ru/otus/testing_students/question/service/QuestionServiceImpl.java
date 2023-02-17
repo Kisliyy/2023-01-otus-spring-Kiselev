@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import ru.otus.testing_students.answer.model.Answer;
 import ru.otus.testing_students.answer.service.AnswerService;
 import ru.otus.testing_students.question.model.Question;
-import ru.otus.testing_students.service.IdCounter;
+import ru.otus.testing_students.service.counter.IdCounter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +26,7 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public List<Question> convertStringsToQuestions(List<String> lines) {
-        List<Question> questions = new ArrayList<>(0);
+        List<Question> questions = new ArrayList<>();
         for (int i = 0; i < lines.size() - 2; i++) {
             Question newQuestion = new Question();
             String line = lines.get(i);
@@ -38,7 +38,7 @@ public class QuestionServiceImpl implements QuestionService {
                 String lineWrightAnswer = lines.get(i + 2);
                 Answer wrightAnswer = answerService.getRightAnswer(newQuestion.getAnswers(), lineWrightAnswer);
                 newQuestion.setRightAnswer(wrightAnswer);
-                newQuestion.setId(idCounter.getNextId());
+                newQuestion.setId(idCounter.getNextValue());
                 questions.add(newQuestion);
             }
         }

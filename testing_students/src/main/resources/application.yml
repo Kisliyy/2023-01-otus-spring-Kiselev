@@ -1,0 +1,12 @@
+server:
+  port: 8080
+
+spring:
+  messages:
+    encoding: UTF-8
+    basename: i18n/appmessages
+
+application:
+  path-data : data/questions.csv
+  count-right-answer: 3
+  locale: en
