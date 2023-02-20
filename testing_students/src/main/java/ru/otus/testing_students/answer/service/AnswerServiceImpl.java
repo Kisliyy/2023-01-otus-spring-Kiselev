@@ -17,7 +17,7 @@ public class AnswerServiceImpl implements AnswerService {
                 .stream(lineAnswers.split(","))
                 .map(String::trim)
                 .collect(Collectors.toList());
-        List<Answer> answers = new ArrayList<>(1);
+        List<Answer> answers = new ArrayList<>();
         if (stringAnswers.size() > 1) {
             stringAnswers
                     .stream()

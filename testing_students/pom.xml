@@ -6,41 +6,52 @@
 
     <groupId>org.example</groupId>
     <artifactId>testing_students</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.7.3</version>
+    </parent>
 
     <properties>
         <maven.compiler.target>11</maven.compiler.target>
         <maven.compiler.source>11</maven.compiler.source>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spring.version>5.3.25</spring.version>
-        <junit.version>5.9.2</junit.version>
-        <lombok.version>1.18.24</lombok.version>
-        <mockito.version>5.0.0</mockito.version>
+        <maven-enforcer-plugin.version>3.1.0</maven-enforcer-plugin.version>
+        <minimal.maven.version>3.3.9</minimal.maven.version>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
-            <version>${spring.version}</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -48,26 +59,32 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                    <archive>
-                        <manifest>
-                            <mainClass>ru.otus.testing_students.TestingStudentsApplication</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>${maven-enforcer-plugin.version}</version>
                 <executions>
                     <execution>
-                        <id>make-assembly</id>
-                        <phase>package</phase>
+                        <id>enforce-maven</id>
                         <goals>
-                            <goal>single</goal>
+                            <goal>enforce</goal>
                         </goals>
+                        <configuration>
+                            <rules>
+                                <dependencyConvergence/>
+                                <requireMavenVersion>
+                                    <version>${minimal.maven.version}</version>
+                                </requireMavenVersion>
+                            </rules>
+                        </configuration>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <executable>true</executable>
+                </configuration>
             </plugin>
         </plugins>
     </build>

@@ -5,7 +5,8 @@ import org.springframework.stereotype.Service;
 import ru.otus.testing_students.handlers.CsvHandler;
 import ru.otus.testing_students.question.model.Question;
 import ru.otus.testing_students.question.service.QuestionService;
-import ru.otus.testing_students.service.Terminal;
+import ru.otus.testing_students.service.message.MessageSourceService;
+import ru.otus.testing_students.service.terminal.IOService;
 import ru.otus.testing_students.student.model.Student;
 import ru.otus.testing_students.student.service.StudentService;
 
@@ -19,26 +20,38 @@ public class TestingStudentsService implements TestingService {
 
     private final CsvHandler csvHandler;
     private final QuestionService questionService;
-    private final Terminal terminal;
     private final StudentService studentService;
+    private final MessageSourceService messageSourceService;
+    private final IOService ioService;
 
     @Override
     public void conductSurvey() throws IOException {
-        terminal.println("Enter a first name:");
-        String firstName = terminal.readLine();
-        terminal.println("Enter a last name:");
-        String lastName = terminal.readLine();
+        String lastFirstName = messageSourceService.getLocalizationMessage("print.first-name");
+        ioService.println(lastFirstName);
+        String firstName = ioService.readLine();
+
+        String enterLastName = messageSourceService.getLocalizationMessage("print.last-name");
+        ioService.println(enterLastName);
+        String lastName = ioService.readLine();
+
         List<String> lines = csvHandler.handleCsvFile();
         List<Question> questionsWithAnswers = questionService.convertStringsToQuestions(lines);
         List<String> studentAnswers = new ArrayList<>();
         for (Question question : questionsWithAnswers) {
-            terminal.println(question);
-            terminal.println("If you have several answer options, select one of them and enter it:");
-            String userAnswer = terminal.readLine();
+            String localizationQuestionMessage = messageSourceService.getLocalizationQuestionMessage(question);
+            ioService.println(localizationQuestionMessage);
+
+            String localizationMessage = messageSourceService.getLocalizationMessage("print.answer-option");
+            ioService.println(localizationMessage);
+
+            String userAnswer = ioService.readLine();
             studentAnswers.add(userAnswer);
         }
         int countWrightAnswers = questionService.getCountRightAnswers(questionsWithAnswers, studentAnswers);
         Student student = studentService.createStudent(firstName, lastName, countWrightAnswers);
-        terminal.println(student);
+        String localizationStudentMessage = messageSourceService.getLocalizationStudentMessage(student);
+        ioService.println(localizationStudentMessage);
     }
+
+
 }

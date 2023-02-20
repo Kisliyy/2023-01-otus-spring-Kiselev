@@ -1,7 +1,14 @@
 package ru.otus.testing_students.config;
 
-import org.springframework.context.annotation.PropertySource;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@PropertySource("classpath:application-test.properties")
+@TestPropertySource(locations = "classpath:application-test.yml")
+@ExtendWith(SpringExtension.class)
+@ActiveProfiles("test")
+@SpringBootTest
 public abstract class AbstractTestConfig {
 }
