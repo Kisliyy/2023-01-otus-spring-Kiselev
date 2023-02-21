@@ -1,9 +1,7 @@
 package ru.otus.testing_students.service.terminal;
 
-import java.io.IOException;
-
 public interface IOService {
-    String readLine() throws IOException;
+    String readLine();
 
     void println(String string);
 

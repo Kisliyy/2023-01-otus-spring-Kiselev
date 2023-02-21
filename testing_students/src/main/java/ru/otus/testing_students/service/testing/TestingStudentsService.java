@@ -10,7 +10,6 @@ import ru.otus.testing_students.service.terminal.IOService;
 import ru.otus.testing_students.student.model.Student;
 import ru.otus.testing_students.student.service.StudentService;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,20 +19,13 @@ public class TestingStudentsService implements TestingService {
 
     private final CsvHandler csvHandler;
     private final QuestionService questionService;
-    private final StudentService studentService;
     private final MessageSourceService messageSourceService;
+
+    private final StudentService studentService;
     private final IOService ioService;
 
     @Override
-    public void conductSurvey() throws IOException {
-        String lastFirstName = messageSourceService.getLocalizationMessage("print.first-name");
-        ioService.println(lastFirstName);
-        String firstName = ioService.readLine();
-
-        String enterLastName = messageSourceService.getLocalizationMessage("print.last-name");
-        ioService.println(enterLastName);
-        String lastName = ioService.readLine();
-
+    public void conductSurvey(String firstName, String lastName) {
         List<String> lines = csvHandler.handleCsvFile();
         List<Question> questionsWithAnswers = questionService.convertStringsToQuestions(lines);
         List<String> studentAnswers = new ArrayList<>();
@@ -52,6 +44,4 @@ public class TestingStudentsService implements TestingService {
         String localizationStudentMessage = messageSourceService.getLocalizationStudentMessage(student);
         ioService.println(localizationStudentMessage);
     }
-
-
 }

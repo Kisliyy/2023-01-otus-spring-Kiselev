@@ -15,7 +15,6 @@ import ru.otus.testing_students.service.terminal.IOService;
 import ru.otus.testing_students.student.model.Student;
 import ru.otus.testing_students.student.service.StudentService;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -40,7 +39,7 @@ class TestingStudentsServiceTest extends AbstractTestConfig {
     private TestingService testingStudentsService;
 
     @Test
-    void conductSurveySequenceMethodCallTest() throws IOException {
+    void conductSurveySequenceMethodCallTest() {
         Long id = 1L;
         String question = "Will you take the spring course on otus?";
         String answer = "yes";
@@ -68,27 +67,19 @@ class TestingStudentsServiceTest extends AbstractTestConfig {
                 .build();
 
         when(messageSourceService.getLocalizationMessage(any()))
-                .thenReturn("Enter a first name:", "Enter a last name:", "If you have several answer options, select one of them and enter it:");
+                .thenReturn("If you have several answer options, select one of them and enter it:");
         when(messageSourceService.getLocalizationQuestionMessage(qs)).thenReturn(qs.toString());
         when(messageSourceService.getLocalizationStudentMessage(student)).thenReturn(student.toString());
 
-        when(ioService.readLine()).thenReturn(firstName, lastName, answer);
+        when(ioService.readLine()).thenReturn(answer);
         when(csvHandler.handleCsvFile()).thenReturn(Collections.emptyList());
         when(questionService.convertStringsToQuestions(anyList())).thenReturn(questionList);
         when(questionService.getCountRightAnswers(anyList(), anyList())).thenReturn(countRightAnswer);
         when(studentService.createStudent(firstName, lastName, countRightAnswer)).thenReturn(student);
 
-        testingStudentsService.conductSurvey();
+        testingStudentsService.conductSurvey(firstName, lastName);
 
         InOrder inOrder = Mockito.inOrder(ioService, questionService, studentService, csvHandler, messageSourceService);
-        inOrder.verify(messageSourceService).getLocalizationMessage(anyString());
-        inOrder.verify(ioService).println("Enter a first name:");
-        inOrder.verify(ioService).readLine();
-
-        inOrder.verify(messageSourceService).getLocalizationMessage(anyString());
-        inOrder.verify(ioService).println("Enter a last name:");
-        inOrder.verify(ioService).readLine();
-
         inOrder.verify(csvHandler).handleCsvFile();
 
         inOrder.verify(questionService).convertStringsToQuestions(anyList());

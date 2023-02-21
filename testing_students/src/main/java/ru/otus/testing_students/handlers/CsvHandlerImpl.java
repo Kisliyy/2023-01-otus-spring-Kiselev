@@ -23,7 +23,7 @@ public class CsvHandlerImpl implements CsvHandler {
 
     @Override
     public List<String> handleCsvFile() {
-        List<String> records = new ArrayList<>(0);
+        List<String> records = new ArrayList<>();
         try (InputStream source = resourceService.getInputStreamResource();
              Scanner scanner = new Scanner(source)) {
             while (scanner.hasNextLine()) {
@@ -31,7 +31,7 @@ public class CsvHandlerImpl implements CsvHandler {
             }
             return records;
         } catch (IOException e) {
-            throw new HandleException(e);
+            throw new HandleException("Failed to process csv file", e);
         }
     }
 
