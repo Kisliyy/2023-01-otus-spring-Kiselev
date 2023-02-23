@@ -1,4 +1,8 @@
+spring:
+  shell:
+    interactive:
+      enabled: false
 application:
-  path-data : data/questions-test.csv
+  path-data: data/questions-test.csv
   count-right-answer: 1
   locale: en
