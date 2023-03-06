@@ -1,0 +1,10 @@
+server:
+  port: 8080
+spring:
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:5437/book_storage
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver
+  liquibase:
+    change-log: classpath:/db/liquibase/master.xml
