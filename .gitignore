@@ -4,8 +4,8 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-#SHELL
-spring-shell.log
+#logs
+.log
 
 ### STS ###
 .apt_generated
