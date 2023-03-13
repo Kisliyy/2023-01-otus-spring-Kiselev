@@ -3,12 +3,11 @@ package ru.otus.book_storage.command.book;
 import lombok.RequiredArgsConstructor;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
-import org.springframework.shell.standard.ShellMethodAvailability;
 import org.springframework.shell.standard.ShellOption;
-import ru.otus.book_storage.domain.author.model.Author;
-import ru.otus.book_storage.domain.book.model.Book;
-import ru.otus.book_storage.domain.book.service.BookService;
-import ru.otus.book_storage.domain.genre.model.Genre;
+import ru.otus.book_storage.models.Author;
+import ru.otus.book_storage.models.Book;
+import ru.otus.book_storage.models.Genre;
+import ru.otus.book_storage.service.book.BookService;
 
 import java.util.stream.Collectors;
 
@@ -21,7 +20,6 @@ public class BookCommandShell implements BookCommand {
 
     @Override
     @ShellMethod(value = "Add book", key = "add b")
-    @ShellMethodAvailability(value = "isAddBookAvailable")
     public String addBook(@ShellOption(help = "Title of the book") String title,
                           @ShellOption(help = "First name author") String firstName,
                           @ShellOption(help = "Last name author") String lastName,
@@ -32,8 +30,8 @@ public class BookCommandShell implements BookCommand {
                 .genre(new Genre(null, genre))
                 .author(new Author(null, firstName, lastName))
                 .build();
-        bookService.save(book);
-        return String.format("Book %s has been successfully saved", title);
+        Book persistBook = bookService.save(book);
+        return persistBook.toString();
     }
 
     @Override

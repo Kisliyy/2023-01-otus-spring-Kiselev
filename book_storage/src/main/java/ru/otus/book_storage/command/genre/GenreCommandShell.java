@@ -3,8 +3,8 @@ package ru.otus.book_storage.command.genre;
 import lombok.RequiredArgsConstructor;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
-import ru.otus.book_storage.domain.genre.dao.GenreDao;
-import ru.otus.book_storage.domain.genre.model.Genre;
+import ru.otus.book_storage.models.Genre;
+import ru.otus.book_storage.service.genre.GenreService;
 
 import java.util.stream.Collectors;
 
@@ -12,12 +12,12 @@ import java.util.stream.Collectors;
 @ShellComponent
 public class GenreCommandShell implements GenreCommand {
 
-    private final GenreDao genreDao;
+    private final GenreService genreService;
 
     @Override
     @ShellMethod(value = "Get all genres", key = "genres")
     public String getAll() {
-        return genreDao
+        return genreService
                 .getAll()
                 .stream()
                 .map(Genre::toString)
