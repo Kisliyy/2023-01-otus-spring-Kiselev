@@ -5,7 +5,7 @@ public interface CommentCommand {
 
     String getComment(long commentId);
 
-    String getCommentByBook(long bookId);
+    String getCommentsByBook(long bookId);
 
     String deleteComment(long commentId);
 

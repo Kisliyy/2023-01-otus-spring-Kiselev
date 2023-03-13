@@ -34,7 +34,7 @@ public class CommentCommandShell implements CommentCommand {
 
     @Override
     @ShellMethod(value = "Get comment by book id", key = "get c by b")
-    public String getCommentByBook(@ShellOption(help = "Book id") long bookId) {
+    public String getCommentsByBook(@ShellOption(help = "Book id") long bookId) {
         List<CommentDto> byBookId = commentService.findByBookId(bookId);
         return byBookId.stream().map(CommentDto::toString).collect(Collectors.joining("\n"));
     }
