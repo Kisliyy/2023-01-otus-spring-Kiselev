@@ -1,14 +1,12 @@
 package ru.otus.book_storage.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 
 @Data
 @NoArgsConstructor
+@EqualsAndHashCode
 @AllArgsConstructor
 @Builder
 @Table(name = "comments")
@@ -23,7 +21,7 @@ public class Comment {
     @Column(name = "text_comment", nullable = false)
     private String text;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
 

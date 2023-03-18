@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.book_storage.dao.genre.GenreDao;
+import ru.otus.book_storage.exceptions.NotFoundException;
 import ru.otus.book_storage.models.Genre;
 
 import java.util.List;
@@ -21,16 +22,9 @@ public class GenreServiceImpl implements GenreService {
     }
 
     @Override
-    @Transactional
-    public Genre getByGenre(String genre) {
+    public Genre getById(Long id) {
         return genreDao
-                .getByGenre(genre)
-                .orElse(null);
-    }
-
-    @Override
-    @Transactional
-    public Genre save(Genre genre) {
-        return genreDao.save(genre);
+                .getById(id)
+                .orElseThrow(() -> new NotFoundException("Genre not found by id: " + id));
     }
 }

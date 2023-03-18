@@ -9,7 +9,5 @@ public interface GenreDao {
 
     List<Genre> getAll();
 
-    Optional<Genre> getByGenre(String genre);
-
-    Genre save(Genre genre);
+    Optional<Genre> getById(long id);
 }

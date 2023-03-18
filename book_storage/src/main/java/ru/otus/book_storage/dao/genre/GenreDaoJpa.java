@@ -1,6 +1,6 @@
 package ru.otus.book_storage.dao.genre;
 
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 import ru.otus.book_storage.models.Genre;
 
 import javax.persistence.EntityManager;
@@ -10,7 +10,7 @@ import javax.persistence.TypedQuery;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
+@Component
 public class GenreDaoJpa implements GenreDao {
 
     @PersistenceContext
@@ -26,28 +26,17 @@ public class GenreDaoJpa implements GenreDao {
         return query.getResultList();
     }
 
-
     @Override
-    public Optional<Genre> getByGenre(String genre) {
-        TypedQuery<Genre> query = entityManager
-                .createQuery(
-                        "SELECT g FROM Genre as g WHERE g.genre = :genre",
-                        Genre.class
-                );
-        query.setParameter("genre", genre);
+    public Optional<Genre> getById(long id) {
+        if (id == 0) {
+            return Optional.empty();
+        }
         try {
-            return Optional.of(query.getSingleResult());
+            Genre genre = entityManager.find(Genre.class, id);
+            return Optional.ofNullable(genre);
         } catch (NoResultException e) {
             return Optional.empty();
         }
     }
 
-    @Override
-    public Genre save(Genre genre) {
-        if (genre.getId() == null) {
-            entityManager.persist(genre);
-            return genre;
-        }
-        return entityManager.merge(genre);
-    }
 }

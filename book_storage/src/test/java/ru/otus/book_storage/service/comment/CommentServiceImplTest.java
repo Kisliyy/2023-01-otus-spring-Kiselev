@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import ru.otus.book_storage.dao.comment.CommentDao;
-import ru.otus.book_storage.dto.CommentDto;
+import ru.otus.book_storage.dto.CommentUpdateDto;
 import ru.otus.book_storage.exceptions.NotFoundException;
 import ru.otus.book_storage.models.Book;
 import ru.otus.book_storage.models.Comment;
@@ -28,8 +28,8 @@ class CommentServiceImplTest {
     @Autowired
     private CommentService commentService;
 
-    private final long bookId = 23;
-    private final long commentId = 1;
+    private final long bookId = 23L;
+    private final long commentId = 1L;
     private final String textComment = "textComment";
 
     @Test
@@ -62,12 +62,15 @@ class CommentServiceImplTest {
 
     @Test
     void findByIdReturnCommentTest() {
-        CommentDto comment = new CommentDto(commentId, textComment);
-        when(commentDao.findById(commentId)).thenReturn(Optional.of(comment));
+        Comment findComment = Comment.builder()
+                .id(commentId)
+                .text(textComment)
+                .build();
+        when(commentDao.findById(commentId)).thenReturn(Optional.of(findComment));
 
-        CommentDto commentDto = commentService.findById(commentId);
-        assertEquals(commentId, commentDto.getId());
-        assertEquals(textComment, commentDto.getText());
+        Comment comment = commentService.findById(commentId);
+        assertEquals(commentId, comment.getId());
+        assertEquals(textComment, comment.getText());
         verify(commentDao, times(1)).findById(commentId);
     }
 
@@ -91,14 +94,18 @@ class CommentServiceImplTest {
 
     @Test
     void getCommentsByBookIdTest() {
-        List<CommentDto> commentsByBookId = List.of(
-                new CommentDto(),
-                new CommentDto(),
-                new CommentDto()
+        List<Comment> commentsByBookId = List.of(
+                new Comment(),
+                new Comment(),
+                new Comment()
         );
-        when(commentDao.findByBookId(bookId)).thenReturn(commentsByBookId);
+        Book findBook = Book.builder()
+                .id(bookId)
+                .comments(commentsByBookId)
+                .build();
+        when(bookService.getById(bookId)).thenReturn(findBook);
+        List<Comment> byBookId = commentService.findByBookId(bookId);
 
-        List<CommentDto> byBookId = commentService.findByBookId(bookId);
         assertNotNull(byBookId);
         assertFalse(byBookId.isEmpty());
         assertEquals(3, byBookId.size());
@@ -106,14 +113,20 @@ class CommentServiceImplTest {
 
     @Test
     void updateCommentSuccessfulTest() {
-        Comment updatedComment = Comment.builder()
+        String newTextComment = "newTextComment";
+        CommentUpdateDto updatedCommentDto = new CommentUpdateDto(commentId, newTextComment);
+
+        Comment updatedComment = Comment
+                .builder()
+                .id(commentId)
                 .text(textComment)
-                .id(bookId)
                 .build();
-        doNothing()
-                .when(commentDao)
-                .updateComment(updatedComment);
-        commentService.updateComment(updatedComment);
-        verify(commentDao, times(1)).updateComment(updatedComment);
+
+        when(commentDao.findById(commentId)).thenReturn(Optional.of(updatedComment));
+        updatedComment.setText(newTextComment);
+        when(commentDao.save(updatedComment)).thenReturn(updatedComment);
+        commentService.updateComment(updatedCommentDto);
+        verify(commentDao, times(1)).findById(commentId);
+        verify(commentDao, times(1)).save(updatedComment);
     }
 }

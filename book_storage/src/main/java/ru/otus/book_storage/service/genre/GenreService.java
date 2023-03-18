@@ -7,7 +7,5 @@ import java.util.List;
 public interface GenreService {
     List<Genre> getAll();
 
-    Genre getByGenre(String genre);
-
-    Genre save(Genre genre);
+    Genre getById(Long id);
 }

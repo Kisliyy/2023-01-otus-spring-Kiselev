@@ -34,24 +34,21 @@ class GenreDaoJpaTest {
 
     @Test
     void getByGenreReturnGenreTest() {
-        String existGenre = "novel";
-        Optional<Genre> byGenre = genreDao.getByGenre(existGenre);
+        Long existGenreId = 1L;
+        Optional<Genre> byGenre = genreDao.getById(existGenreId);
         assertFalse(byGenre.isEmpty());
-        Genre genre = byGenre.get();
-        assertEquals(existGenre, genre.getGenre());
-        assertNotNull(genre.getId());
+        Genre actualGenre = byGenre.get();
+        var expectedGenre = testEntityManager.find(Genre.class, existGenreId);
+        assertNotNull(actualGenre.getId());
+        assertEquals(expectedGenre, actualGenre);
+        assertEquals(existGenreId, actualGenre.getId());
     }
 
     @Test
-    void saveGenreSuccessfulTest() {
-        String textGenre = "genre_test";
-        Genre genre = Genre.builder()
-                .genre(textGenre)
-                .build();
-        Genre persistGenre = genreDao.save(genre);
-        Genre persist = testEntityManager.persist(genre);
-        assertEquals(persist, persistGenre);
-        assertNotNull(persistGenre.getId());
-        assertEquals(textGenre, persistGenre.getGenre());
+    void getByGenreReturnOptionalEmptyTest() {
+        long nonExistentGenreId = 50000L;
+        Optional<Genre> byGenre = genreDao.getById(nonExistentGenreId);
+        assertTrue(byGenre.isEmpty());
     }
+
 }

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.book_storage.dao.author.AuthorDao;
+import ru.otus.book_storage.exceptions.NotFoundException;
 import ru.otus.book_storage.models.Author;
 
 import java.util.List;
@@ -14,11 +15,6 @@ public class AuthorServiceImpl implements AuthorService {
 
     private final AuthorDao authorDao;
 
-    @Override
-    @Transactional
-    public Author save(Author author) {
-        return authorDao.save(author);
-    }
 
     @Override
     @Transactional(readOnly = true)
@@ -27,10 +23,10 @@ public class AuthorServiceImpl implements AuthorService {
     }
 
     @Override
-    @Transactional
-    public Author findByFirstNameAndLastName(String firstName, String lastName) {
+    @Transactional(readOnly = true)
+    public Author findById(Long id) {
         return authorDao
-                .findByFirstNameAndLastName(firstName, lastName)
-                .orElse(null);
+                .findById(id)
+                .orElseThrow(() -> new NotFoundException("Author not found by id: " + id));
     }
 }

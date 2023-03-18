@@ -3,6 +3,7 @@ package ru.otus.book_storage.command.genre;
 import lombok.RequiredArgsConstructor;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
+import org.springframework.shell.standard.ShellOption;
 import ru.otus.book_storage.models.Genre;
 import ru.otus.book_storage.service.genre.GenreService;
 
@@ -22,5 +23,12 @@ public class GenreCommandShell implements GenreCommand {
                 .stream()
                 .map(Genre::toString)
                 .collect(Collectors.joining("\n"));
+    }
+
+    @Override
+    @ShellMethod(value = "Gen genre by id", key = "genre by")
+    public String getById(@ShellOption(help = "Genre id") Long id) {
+        Genre findGenre = genreService.getById(id);
+        return findGenre.toString();
     }
 }

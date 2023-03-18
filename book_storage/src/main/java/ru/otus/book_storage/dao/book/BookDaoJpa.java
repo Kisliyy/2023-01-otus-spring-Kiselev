@@ -1,13 +1,16 @@
 package ru.otus.book_storage.dao.book;
 
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 import ru.otus.book_storage.models.Book;
 
-import javax.persistence.*;
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
+@Component
 public class BookDaoJpa implements BookDao {
 
     @PersistenceContext
@@ -24,10 +27,11 @@ public class BookDaoJpa implements BookDao {
 
     @Override
     public void deleteById(long id) {
-        Query query = entityManager
-                .createQuery("DELETE FROM Book as b WHERE b.id = :id");
-        query.setParameter("id", id);
-        query.executeUpdate();
+        Optional<Book> byId = getById(id);
+        if (byId.isPresent()) {
+            Book book = byId.get();
+            entityManager.remove(book);
+        }
     }
 
     @Override
@@ -35,11 +39,9 @@ public class BookDaoJpa implements BookDao {
         if (id == 0) {
             return Optional.empty();
         }
-        TypedQuery<Book> query = entityManager
-                .createQuery("SELECT b FROM Book b JOIN FETCH b.genre JOIN FETCH b.author WHERE b.id = :id", Book.class);
-        query.setParameter("id", id);
         try {
-            return Optional.of(query.getSingleResult());
+            Book findBook = entityManager.find(Book.class, id);
+            return Optional.ofNullable(findBook);
         } catch (NoResultException e) {
             return Optional.empty();
         }
@@ -48,17 +50,8 @@ public class BookDaoJpa implements BookDao {
     @Override
     public List<Book> getAll() {
         TypedQuery<Book> query = entityManager
-                .createQuery("SELECT b FROM Book b JOIN FETCH b.genre JOIN FETCH b.author", Book.class);
+                .createQuery("SELECT b FROM Book b", Book.class);
         return query.getResultList();
     }
 
-    @Override
-    public void update(Book book) {
-        Query query = entityManager.createQuery("UPDATE Book SET title = :title, genre =: genre, author =: author WHERE id = :id");
-        query.setParameter("title", book.getTitle());
-        query.setParameter("genre", book.getGenre());
-        query.setParameter("author", book.getAuthor());
-        query.setParameter("id", book.getId());
-        query.executeUpdate();
-    }
 }

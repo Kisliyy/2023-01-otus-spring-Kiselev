@@ -1,6 +1,6 @@
 package ru.otus.book_storage.dao.author;
 
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 import ru.otus.book_storage.models.Author;
 
 import javax.persistence.EntityManager;
@@ -10,20 +10,12 @@ import javax.persistence.TypedQuery;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
+@Component
 public class AuthorDaoJpa implements AuthorDao {
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    @Override
-    public Author save(Author author) {
-        if (author.getId() == null) {
-            entityManager.persist(author);
-            return author;
-        }
-        return entityManager.merge(author);
-    }
 
     @Override
     public List<Author> getAll() {
@@ -36,16 +28,13 @@ public class AuthorDaoJpa implements AuthorDao {
     }
 
     @Override
-    public Optional<Author> findByFirstNameAndLastName(String firstName, String lastName) {
-        TypedQuery<Author> query = entityManager
-                .createQuery(
-                        "SELECT a FROM Author as a WHERE a.firstName = :firstName and a.lastName = :lastName",
-                        Author.class
-                );
-        query.setParameter("firstName", firstName);
-        query.setParameter("lastName", lastName);
+    public Optional<Author> findById(long id) {
+        if (id == 0) {
+            return Optional.empty();
+        }
         try {
-            return Optional.of(query.getSingleResult());
+            Author author = entityManager.find(Author.class, id);
+            return Optional.ofNullable(author);
         } catch (NoResultException e) {
             return Optional.empty();
         }

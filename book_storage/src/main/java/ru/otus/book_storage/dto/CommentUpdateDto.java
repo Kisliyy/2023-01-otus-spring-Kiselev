@@ -2,20 +2,14 @@ package ru.otus.book_storage.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Data
+@EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
-public class CommentDto {
+public class CommentUpdateDto {
     private Long id;
     private String text;
-
-    @Override
-    public String toString() {
-        return String.format(
-                "Comment: id: %s text: %s",
-                id,
-                text);
-    }
 }

@@ -6,11 +6,9 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.jdbc.Sql;
-import ru.otus.book_storage.dto.CommentDto;
 import ru.otus.book_storage.models.Book;
 import ru.otus.book_storage.models.Comment;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -36,12 +34,12 @@ class CommentDaoJpaTest {
                 .book(existBook)
                 .build();
 
-        Comment persistComment = commentDao.save(newComment);
-        Comment persist = testEntityManager.persist(newComment);
-        assertEquals(persist, persistComment);
-        assertNotNull(persistComment.getId());
-        assertNotNull(persistComment.getBook());
-        assertEquals(textComment, persistComment.getText());
+        Comment actualComment = commentDao.save(newComment);
+        Comment expectedComment = testEntityManager.persist(newComment);
+        assertEquals(expectedComment, actualComment);
+        assertNotNull(actualComment.getId());
+        assertNotNull(actualComment.getBook());
+        assertEquals(textComment, actualComment.getText());
     }
 
     @Test
@@ -49,12 +47,19 @@ class CommentDaoJpaTest {
     @Sql(value = "/data/comment-data-after.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void findByIdReturnCommentTest() {
         long existCommentId = 1L;
-        Optional<CommentDto> byId = commentDao.findById(existCommentId);
+        Optional<Comment> byId = commentDao.findById(existCommentId);
         Comment comment = testEntityManager.find(Comment.class, existCommentId);
         assertFalse(byId.isEmpty());
-        CommentDto commentDto = byId.get();
+        Comment commentDto = byId.get();
         assertEquals(comment.getId(), commentDto.getId());
         assertEquals(comment.getText(), commentDto.getText());
+    }
+
+    @Test
+    void findByIdReturnOptionalEmptyTest() {
+        long commentId = 0;
+        Optional<Comment> findComment = commentDao.findById(commentId);
+        assertTrue(findComment.isEmpty());
     }
 
     @Test
@@ -67,28 +72,4 @@ class CommentDaoJpaTest {
         assertNull(comment);
     }
 
-    @Test
-    @Sql(value = "/data/comment-data-before.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @Sql(value = "/data/comment-data-after.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    void findByBookIdReturnCommentsSuccessfulTest() {
-        long existBookId = 1L;
-        List<CommentDto> commentsByBookId = commentDao.findByBookId(existBookId);
-        assertNotNull(commentsByBookId);
-        assertFalse(commentsByBookId.isEmpty());
-        assertEquals(2, commentsByBookId.size());
-    }
-
-    @Test
-    @Sql(value = "/data/comment-data-before.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @Sql(value = "/data/comment-data-after.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    void updateExistCommentsSuccessfulTest() {
-        long existCommentId = 1L;
-        String updateTextComment = "updateTextComment";
-        var comment = testEntityManager.find(Comment.class, existCommentId);
-        comment.setText(updateTextComment);
-        commentDao.updateComment(comment);
-        var updateComment = testEntityManager.find(Comment.class, existCommentId);
-        assertEquals(existCommentId, updateComment.getId());
-        assertEquals(updateTextComment, updateComment.getText());
-    }
 }

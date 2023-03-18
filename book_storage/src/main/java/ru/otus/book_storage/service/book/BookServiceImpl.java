@@ -12,6 +12,7 @@ import ru.otus.book_storage.service.author.AuthorService;
 import ru.otus.book_storage.service.genre.GenreService;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -41,7 +42,6 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Book getById(Long id) {
         return bookDao
                 .getById(id)
@@ -51,22 +51,22 @@ public class BookServiceImpl implements BookService {
     @Override
     @Transactional
     public void updateBook(Book book) {
-        checkAuthorAndGenre(book);
-        bookDao.update(book);
+        Optional<Book> findBook = bookDao.getById(book.getId());
+        if (findBook.isPresent()) {
+            checkAuthorAndGenre(book);
+            bookDao.save(book);
+        }
     }
 
     private void checkAuthorAndGenre(Book book) {
         Author author = book.getAuthor();
-        Author authorFromDb = authorService.findByFirstNameAndLastName(author.getFirstName(), author.getLastName());
-        if (authorFromDb == null) {
-            authorFromDb = authorService.save(author);
-        }
-        book.setAuthor(authorFromDb);
+        Author findAuthor = authorService.findById(author.getId());
+        book.setAuthor(findAuthor);
+
         Genre genre = book.getGenre();
-        Genre genreFromDb = genreService.getByGenre(genre.getGenre());
-        if (genreFromDb == null) {
-            genreFromDb = genreService.save(genre);
-        }
-        book.setGenre(genreFromDb);
+        Genre findGenre = genreService.getById(genre.getId());
+        book.setGenre(findGenre);
     }
+
+
 }

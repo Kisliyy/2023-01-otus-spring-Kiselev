@@ -23,4 +23,11 @@ public class AuthorCommandShell implements AuthorCommand {
                 .map(Author::toString)
                 .collect(Collectors.joining("\n"));
     }
+
+    @Override
+    @ShellMethod(value = "Get author by id", key = "author by")
+    public String findById(Long id) {
+        Author findAuthor = authorService.findById(id);
+        return findAuthor.toString();
+    }
 }

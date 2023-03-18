@@ -33,119 +33,132 @@ class BookServiceImplTest {
     private BookService bookService;
 
     private final String title = "test title";
-    private final long authorId = 1;
-    private final long genreId = 10;
+    private final long authorId = 1L;
+    private final long bookId = 1L;
+    private final long genreId = 10L;
     private final String firstName = "first_name";
     private final String lastName = "last_name";
     private final String bookGenre = "genre";
-    private Author author;
-    private Genre genre;
-    private Book newBook;
+    private Author existAuthor;
+    private Genre existGenre;
+    private Book existBook;
 
 
     @BeforeEach
     void init() {
-        author = Author.builder()
-                .firstName(firstName)
-                .lastName(lastName)
-                .build();
-        genre = Genre.builder()
-                .genre(bookGenre)
+        existAuthor = Author.builder().id(authorId).firstName(firstName).lastName(lastName).build();
+        existGenre = Genre.builder().id(genreId).genre(bookGenre).build();
+        existBook = Book.builder().id(bookId).title(title).author(existAuthor).genre(existGenre).build();
+    }
+
+
+    @Test
+    @DisplayName("Saving a book with an unknown author id will return a NotFoundException")
+    void saveBookWithUnknownIdAuthorReturnNotFoundExceptionTest() {
+        Long unknownIdAuthor = 20L;
+        Long unknownIdGenre = 20L;
+        Author author = Author
+                .builder()
+                .id(unknownIdAuthor)
                 .build();
 
-        newBook = Book.builder()
-                .title(title)
-                .author(author)
+        Genre genre = Genre
+                .builder()
+                .id(unknownIdGenre)
+                .build();
+
+        Book savedBook = Book
+                .builder()
                 .genre(genre)
-                .build();
+                .author(author)
+                .title(title).build();
+
+        when(authorService.findById(anyLong())).thenThrow(NotFoundException.class);
+
+        assertThrows(NotFoundException.class, () -> bookService.save(savedBook));
+
+        verify(authorService, times(1)).findById(anyLong());
+        verify(genreService, times(0)).getById(anyLong());
+        verify(bookDao, times(0)).save(any());
     }
 
+    @Test
+    @DisplayName("Saving a book with an unknown genre id will return a NotFoundException")
+    void saveBookWithUnknownIdGenreReturnNotFoundExceptionTest() {
+        Author author = Author.builder().id(authorId).build();
+
+        Author findAuthor = existAuthor;
+
+        Genre genre = Genre.builder().id(anyLong()).build();
+
+        Book savedBook = Book.builder().genre(genre).author(author).title(title).build();
+
+        when(authorService.findById(authorId)).thenReturn(findAuthor);
+        when(genreService.getById(anyLong())).thenThrow(NotFoundException.class);
+
+        assertThrows(NotFoundException.class, () -> bookService.save(savedBook));
+
+        verify(authorService, times(1)).findById(anyLong());
+        verify(genreService, times(1)).getById(anyLong());
+        verify(bookDao, times(0)).save(any());
+    }
 
     @Test
-    @DisplayName("Saving a book with a new author and genre")
-    void saveBookWithNewAuthorAndGenreTest() {
-        Author savedAuthor = Author
+    @DisplayName("Successful book saving")
+    void saveBookSuccessfulTest() {
+        Author author = Author
                 .builder()
                 .id(authorId)
-                .firstName(firstName)
-                .lastName(lastName)
                 .build();
 
-        Genre savedGenre = Genre
+        Author findAuthor = existAuthor;
+
+        Genre genre = Genre
                 .builder()
                 .id(genreId)
-                .genre(bookGenre)
+                .build();
+
+        Genre findGenre = existGenre;
+
+        Book book = Book
+                .builder()
+                .genre(genre)
+                .author(author)
+                .title(title)
                 .build();
 
         Book savedBook = Book
                 .builder()
-                .genre(savedGenre)
-                .author(savedAuthor)
+                .genre(findGenre)
+                .author(findAuthor)
                 .title(title)
                 .build();
 
-        when(authorService.findByFirstNameAndLastName(firstName, lastName)).thenReturn(null);
-        when(authorService.save(author)).thenReturn(savedAuthor);
-
-        when(genreService.getByGenre(bookGenre)).thenReturn(null);
-        when(genreService.save(genre)).thenReturn(savedGenre);
-
-        bookService.save(newBook);
-
-        verify(authorService, times(1)).findByFirstNameAndLastName(firstName, lastName);
-        verify(authorService, times(1)).save(author);
-
-        verify(genreService, times(1)).getByGenre(bookGenre);
-        verify(genreService, times(1)).save(genre);
-
-        verify(bookDao, times(1)).save(savedBook);
-    }
-
-    @Test
-    @DisplayName("Saving a book with an existing author and genre")
-    void saveBookWithExistingAuthorAndGenreTest() {
-        Author existAuthor = Author
+        Book persistBook = Book
                 .builder()
-                .id(authorId)
-                .firstName(firstName)
-                .lastName(lastName)
-                .build();
-
-        Genre existGenre = Genre
-                .builder()
-                .id(genreId)
-                .genre(bookGenre)
-                .build();
-
-        Book savedBook = Book
-                .builder()
-                .genre(existGenre)
-                .author(existAuthor)
+                .id(bookId)
+                .genre(findGenre)
+                .author(findAuthor)
                 .title(title)
                 .build();
 
-        when(authorService.findByFirstNameAndLastName(firstName, lastName)).thenReturn(existAuthor);
-        when(genreService.getByGenre(bookGenre)).thenReturn(existGenre);
+        when(authorService.findById(authorId)).thenReturn(findAuthor);
+        when(genreService.getById(genreId)).thenReturn(findGenre);
+        when(bookDao.save(savedBook)).thenReturn(persistBook);
 
-        bookService.save(newBook);
+        Book persistBookExample = bookService.save(book);
 
-        verify(authorService, times(1)).findByFirstNameAndLastName(firstName, lastName);
-        verify(authorService, times(0)).save(author);
+        assertEquals(persistBook, persistBookExample);
 
-        verify(genreService, times(1)).getByGenre(bookGenre);
-        verify(genreService, times(0)).save(genre);
-
+        verify(authorService, times(1)).findById(authorId);
+        verify(genreService, times(1)).getById(genreId);
         verify(bookDao, times(1)).save(savedBook);
     }
 
     @Test
     @DisplayName("It will not return an empty list of books")
     void getAllBooksNotEmptyListTest() {
-        List<Book> books = List.of(
-                new Book(),
-                new Book(),
-                new Book()
-        );
+        List<Book> books = List.of(new Book(), new Book(), new Book());
         when(bookDao.getAll()).thenReturn(books);
         List<Book> allBook = bookService.getAllBook();
         verify(bookDao, times(1)).getAll();
@@ -165,13 +178,7 @@ class BookServiceImplTest {
     @DisplayName("Find book by id successful")
     void findBookByIdSuccessfulTest() {
         long bookId = 1L;
-        Book existBook = Book
-                .builder()
-                .id(bookId)
-                .author(author)
-                .genre(genre)
-                .title(title)
-                .build();
+        Book existBook = Book.builder().id(bookId).author(existAuthor).genre(existGenre).title(title).build();
 
 
         when(bookDao.getById(bookId)).thenReturn(Optional.of(existBook));
@@ -192,84 +199,68 @@ class BookServiceImplTest {
 
 
     @Test
-    @DisplayName("Update book with new update author and genre")
+    @DisplayName("Update book with new id author and genre")
     void updateBookWithNewAuthorAndGenre() {
-        Book updateBook = newBook;
+        String newTitle = "newTitle";
 
-        Author updateAuthor = Author
-                .builder()
-                .id(authorId)
-                .firstName(firstName)
-                .lastName(lastName)
-                .build();
+        Long updateGenreId = 10000L;
+        String updateBookGenre = "updateBookGenre";
+
+        Long updateAuthorId = 10000L;
+        String updateFirstNameAuthor = "updateFirstNameAuthor";
+        String updateLastNameAuthor = "updateLastNameAuthor";
+
 
         Genre updateGenre = Genre
                 .builder()
-                .id(genreId)
-                .genre(bookGenre)
+                .id(updateGenreId)
                 .build();
 
-        Book updateSaveBook = Book
+        Genre findUpdateGenre = Genre
                 .builder()
-                .genre(updateGenre)
+                .id(updateGenreId)
+                .genre(updateBookGenre)
+                .build();
+
+        Author updateAuthor = Author
+                .builder()
+                .id(updateAuthorId)
+                .build();
+
+        Author findUpdateAuthor = Author
+                .builder()
+                .id(updateAuthorId)
+                .firstName(updateFirstNameAuthor)
+                .lastName(updateLastNameAuthor)
+                .build();
+
+        Book updatedBook = Book
+                .builder()
+                .id(bookId)
+                .title(newTitle)
                 .author(updateAuthor)
-                .title(title)
+                .genre(updateGenre)
                 .build();
 
-        when(authorService.findByFirstNameAndLastName(firstName, lastName)).thenReturn(null);
-        when(authorService.save(author)).thenReturn(updateAuthor);
+        Book savedUpdatedBook = Book
+                .builder()
+                .id(bookId)
+                .title(newTitle)
+                .author(findUpdateAuthor)
+                .genre(findUpdateGenre)
+                .build();
 
-        when(genreService.getByGenre(bookGenre)).thenReturn(null);
-        when(genreService.save(genre)).thenReturn(updateGenre);
+        when(bookDao.getById(bookId)).thenReturn(Optional.of(existBook));
+        when(authorService.findById(updateAuthorId)).thenReturn(findUpdateAuthor);
+        when(genreService.getById(updateGenreId)).thenReturn(findUpdateGenre);
+        when(bookDao.save(savedUpdatedBook)).thenReturn(savedUpdatedBook);
 
-        bookService.updateBook(updateBook);
+        bookService.updateBook(updatedBook);
 
-        verify(authorService, times(1)).findByFirstNameAndLastName(firstName, lastName);
-        verify(authorService, times(1)).save(author);
+        verify(bookDao, times(1)).getById(bookId);
+        verify(authorService, times(1)).findById(updateAuthorId);
 
-        verify(genreService, times(1)).getByGenre(bookGenre);
-        verify(genreService, times(1)).save(genre);
-
-        verify(bookDao, times(1)).update(updateSaveBook);
+        verify(genreService, times(1)).getById(updateGenreId);
+        verify(bookDao, times(1)).save(updatedBook);
     }
-
-    @Test
-    @DisplayName("Update a book with an existing author and genre")
-    void updateBookWithExistingAuthorAndGenreTest() {
-        Book updateBook = newBook;
-
-        Author updateExistAuthor = Author
-                .builder()
-                .id(authorId)
-                .firstName(firstName)
-                .lastName(lastName)
-                .build();
-
-        Genre updateExistGenre = Genre
-                .builder()
-                .id(genreId)
-                .genre(bookGenre)
-                .build();
-
-        Book savedUpdateBook = Book
-                .builder()
-                .genre(updateExistGenre)
-                .author(updateExistAuthor)
-                .title(title)
-                .build();
-
-        when(authorService.findByFirstNameAndLastName(firstName, lastName)).thenReturn(updateExistAuthor);
-        when(genreService.getByGenre(bookGenre)).thenReturn(updateExistGenre);
-
-        bookService.save(updateBook);
-
-        verify(authorService, times(1)).findByFirstNameAndLastName(firstName, lastName);
-        verify(authorService, times(0)).save(author);
-
-        verify(genreService, times(1)).getByGenre(bookGenre);
-        verify(genreService, times(0)).save(genre);
-
-        verify(bookDao, times(1)).save(savedUpdateBook);
-    }
-
 }

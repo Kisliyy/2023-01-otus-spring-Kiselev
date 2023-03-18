@@ -14,6 +14,4 @@ public interface BookDao {
 
     List<Book> getAll();
 
-    void update(Book book);
-
 }

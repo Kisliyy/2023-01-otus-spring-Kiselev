@@ -27,45 +27,6 @@ class AuthorDaoJpaTest {
 
 
     @Test
-    void saveNewAuthorSuccessful() {
-        String firstName = "Firstname";
-        String lastName = "Lastname";
-        Author newAuthor = Author.builder()
-                .firstName(firstName)
-                .lastName(lastName)
-                .build();
-        Author save = authorDao.save(newAuthor);
-        Author persist = testEntityManager.persist(newAuthor);
-        assertNotNull(save.getId());
-        assertEquals(firstName, save.getFirstName());
-        assertEquals(lastName, save.getLastName());
-        assertEquals(save, persist);
-    }
-
-    @Test
-    void saveExistAuthorSuccessful() {
-        String firstName = "Firstname";
-        String newFirstName = "NewFirstname";
-        String lastName = "Lastname";
-        String newLastName = "NewLastname";
-        Author newAuthor = Author.builder()
-                .firstName(firstName)
-                .lastName(lastName)
-                .build();
-        Author persist = testEntityManager.persist(newAuthor);
-        Author existAuthor = Author.builder()
-                .id(persist.getId())
-                .firstName(newFirstName)
-                .lastName(newLastName)
-                .build();
-        Author saveAuthor = authorDao.save(existAuthor);
-        assertNotNull(saveAuthor.getId());
-        assertEquals(persist.getId(), saveAuthor.getId());
-        assertEquals(newFirstName, saveAuthor.getFirstName());
-        assertEquals(newLastName, saveAuthor.getLastName());
-    }
-
-    @Test
     void getAllAuthorsTest() {
         List<Author> allAuthors = authorDao.getAll();
         assertNotNull(allAuthors);
@@ -74,15 +35,32 @@ class AuthorDaoJpaTest {
         assertEquals(3, allAuthors.size());
     }
 
+
     @Test
-    void findByFirstNameAndLastNameReturnAuthorTest() {
-        String existAuthorFirstName = "Aleksandr";
-        String existAuthorLastName = "Pushkin";
-        Optional<Author> byFirstNameAndLastName = authorDao.findByFirstNameAndLastName(existAuthorFirstName, existAuthorLastName);
-        assertFalse(byFirstNameAndLastName.isEmpty());
-        Author author = byFirstNameAndLastName.get();
+    void findByIdReturnAuthorTest() {
+        Long existAuthorId = 1L;
+        Optional<Author> findAuthor = authorDao.findById(existAuthorId);
+        assertFalse(findAuthor.isEmpty());
+        Author author = findAuthor.get();
         assertNotNull(author.getId());
-        assertEquals(existAuthorFirstName, author.getFirstName());
-        assertEquals(existAuthorLastName, author.getLastName());
+        assertEquals(existAuthorId, author.getId());
+    }
+
+    @Test
+    void findByIdReturnsCorrectEntityAuthorTest() {
+        Long existAuthorId = 1L;
+        Optional<Author> findAuthor = authorDao.findById(existAuthorId);
+        assertFalse(findAuthor.isEmpty());
+        Author actualAuthor = findAuthor.get();
+        Author expectedAuthor = testEntityManager.find(Author.class, existAuthorId);
+        assertEquals(expectedAuthor, actualAuthor);
+    }
+
+
+    @Test
+    void findByIdAReturnOptionalEmptyTest() {
+        Long nonExistentId = 50L;
+        Optional<Author> findAuthor = authorDao.findById(nonExistentId);
+        assertTrue(findAuthor.isEmpty());
     }
 }

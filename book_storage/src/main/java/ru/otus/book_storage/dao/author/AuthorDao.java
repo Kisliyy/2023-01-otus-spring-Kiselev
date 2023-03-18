@@ -7,10 +7,8 @@ import java.util.Optional;
 
 public interface AuthorDao {
 
-    Author save(Author author);
-
     List<Author> getAll();
 
-    Optional<Author> findByFirstNameAndLastName(String firstName, String lastName);
+    Optional<Author> findById(long id);
 
 }

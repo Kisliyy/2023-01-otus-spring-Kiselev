@@ -28,47 +28,36 @@ class BookDaoJpaTest {
     @Autowired
     private TestEntityManager testEntityManager;
 
+    private Author persistAuthor;
+    private Genre persistGenre;
+
     private final String title = "title";
 
-    private Author newAuthor;
-    private Genre newGenre;
+    private final Long existAuthorId = 1L;
+    private final Long existGenreId = 1L;
 
     @BeforeEach
     void init() {
-        String firstName = "FirstName";
-        String lastName = "LastName";
-        newAuthor = Author.builder()
-                .firstName(firstName)
-                .lastName(lastName)
-                .build();
-        String bookGenre = "genre";
-        newGenre = Genre.builder()
-                .genre(bookGenre)
-                .build();
+        persistAuthor = testEntityManager.find(Author.class, existAuthorId);
+        persistGenre = testEntityManager.find(Genre.class, existGenreId);
     }
 
     @Test
     void saveNewBookTest() {
-        Author persistAuthor = testEntityManager.persist(newAuthor);
-        Genre persistGenre = testEntityManager.persist(newGenre);
-
         Book newBook = Book.builder()
                 .author(persistAuthor)
                 .title(title)
                 .genre(persistGenre)
                 .build();
-        bookDao.save(newBook);
-        Book persistBook = testEntityManager.persist(newBook);
+        Book persistBook = bookDao.save(newBook);
         assertNotNull(persistBook.getId());
+        assertEquals(title, persistBook.getTitle());
         assertEquals(persistAuthor, persistBook.getAuthor());
         assertEquals(persistGenre, persistBook.getGenre());
     }
 
     @Test
     void deleteByIdBookTest() {
-        Author persistAuthor = testEntityManager.persist(newAuthor);
-        Genre persistGenre = testEntityManager.persist(newGenre);
-
         Book newBook = Book.builder()
                 .author(persistAuthor)
                 .title(title)
@@ -76,7 +65,6 @@ class BookDaoJpaTest {
                 .build();
         Book persistBook = testEntityManager.persist(newBook);
         bookDao.deleteById(persistBook.getId());
-        testEntityManager.detach(persistBook);
         Book book = testEntityManager.find(Book.class, persistBook.getId());
         assertNull(book);
     }
@@ -99,26 +87,5 @@ class BookDaoJpaTest {
         assertFalse(allBooks.isEmpty());
         assertTrue(allBooks.stream().allMatch(Objects::nonNull));
         assertEquals(3, allBooks.size());
-    }
-
-    @Test
-    void updateBookTest() {
-        String newTitle = "newTitle";
-        Author persistAuthor = testEntityManager.persist(newAuthor);
-        Genre persistGenre = testEntityManager.persist(newGenre);
-
-        Book newBook = Book.builder()
-                .author(persistAuthor)
-                .title(title)
-                .genre(persistGenre)
-                .build();
-        Book persistBook = testEntityManager.persist(newBook);
-        persistBook.setTitle(newTitle);
-        bookDao.update(persistBook);
-        Book mergeBook = testEntityManager.merge(persistBook);
-        assertEquals(persistBook.getId(), mergeBook.getId());
-        assertEquals(newTitle, mergeBook.getTitle());
-        assertEquals(persistGenre, mergeBook.getGenre());
-        assertEquals(persistAuthor, mergeBook.getAuthor());
     }
 }

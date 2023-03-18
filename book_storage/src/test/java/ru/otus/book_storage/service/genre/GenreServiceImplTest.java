@@ -5,13 +5,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import ru.otus.book_storage.dao.genre.GenreDao;
+import ru.otus.book_storage.exceptions.NotFoundException;
 import ru.otus.book_storage.models.Genre;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest(classes = GenreServiceImpl.class)
@@ -42,37 +42,22 @@ class GenreServiceImplTest {
     }
 
     @Test
-    void getByGenreReturnGenreTest() {
+    void getByIdReturnGenreTest() {
         Genre findGenre = Genre.builder()
                 .id(genreId)
                 .genre(textGenre)
                 .build();
 
-        when(genreDao.getByGenre(textGenre)).thenReturn(Optional.of(findGenre));
-
-        Genre genre = genreService.getByGenre(textGenre);
+        when(genreDao.getById(genreId)).thenReturn(Optional.of(findGenre));
+        Genre genre = genreService.getById(genreId);
         assertEquals(findGenre, genre);
     }
 
     @Test
     void getByGenreReturnNullTest() {
-        when(genreDao.getByGenre(anyString())).thenReturn(Optional.empty());
-        Genre genre = genreService.getByGenre(anyString());
-        assertNull(genre);
-        verify(genreDao, times(1)).getByGenre(anyString());
+        when(genreDao.getById(anyLong())).thenReturn(Optional.empty());
+        assertThrows(NotFoundException.class, () -> genreService.getById(anyLong()));
+        verify(genreDao, times(1)).getById(anyLong());
     }
 
-    @Test
-    void saveGenreSuccessfulTest() {
-        Genre savedGenre = Genre.builder()
-                .genre(textGenre)
-                .build();
-        Genre persistGenre = Genre.builder()
-                .id(genreId)
-                .genre(textGenre)
-                .build();
-        when(genreDao.save(savedGenre)).thenReturn(persistGenre);
-        Genre genre = genreService.save(savedGenre);
-        assertEquals(persistGenre, genre);
-    }
 }

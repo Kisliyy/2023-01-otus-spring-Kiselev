@@ -1,14 +1,14 @@
 package ru.otus.book_storage.dao.comment;
 
-import org.springframework.stereotype.Repository;
-import ru.otus.book_storage.dto.CommentDto;
+import org.springframework.stereotype.Component;
 import ru.otus.book_storage.models.Comment;
 
-import javax.persistence.*;
-import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.PersistenceContext;
 import java.util.Optional;
 
-@Repository
+@Component
 public class CommentDaoJpa implements CommentDao {
 
     @PersistenceContext
@@ -24,18 +24,13 @@ public class CommentDaoJpa implements CommentDao {
     }
 
     @Override
-    public Optional<CommentDto> findById(long id) {
+    public Optional<Comment> findById(long id) {
         if (id == 0) {
             return Optional.empty();
         }
-        TypedQuery<CommentDto> query = entityManager
-                .createQuery(
-                        "SELECT new ru.otus.book_storage.dto.CommentDto(c.id, c.text) FROM Comment as c WHERE c.id = :id",
-                        CommentDto.class
-                );
-        query.setParameter("id", id);
         try {
-            return Optional.of(query.getSingleResult());
+            Comment comment = entityManager.find(Comment.class, id);
+            return Optional.ofNullable(comment);
         } catch (NoResultException e) {
             return Optional.empty();
         }
@@ -43,28 +38,10 @@ public class CommentDaoJpa implements CommentDao {
 
     @Override
     public void deleteById(long id) {
-        Query query = entityManager.createQuery("DELETE FROM Comment WHERE id = :id");
-        query.setParameter("id", id);
-        query.executeUpdate();
-    }
-
-    @Override
-    public List<CommentDto> findByBookId(long bookId) {
-        TypedQuery<CommentDto> query = entityManager
-                .createQuery(
-                        "SELECT new ru.otus.book_storage.dto.CommentDto(c.id, c.text) FROM Comment as c WHERE c.book.id = :book_id",
-                        CommentDto.class
-                );
-        query.setParameter("book_id", bookId);
-        return query.getResultList();
-    }
-
-    @Override
-    public void updateComment(Comment comment) {
-        Query query = entityManager
-                .createQuery("UPDATE Comment SET text = :text WHERE id = :id");
-        query.setParameter("id", comment.getId());
-        query.setParameter("text", comment.getText());
-        query.executeUpdate();
+        Optional<Comment> commentById = findById(id);
+        if (commentById.isPresent()) {
+            Comment comment = commentById.get();
+            entityManager.remove(comment);
+        }
     }
 }

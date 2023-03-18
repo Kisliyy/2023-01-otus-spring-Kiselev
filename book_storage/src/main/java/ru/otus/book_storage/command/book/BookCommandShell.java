@@ -21,14 +21,13 @@ public class BookCommandShell implements BookCommand {
     @Override
     @ShellMethod(value = "Add book", key = "add b")
     public String addBook(@ShellOption(help = "Title of the book") String title,
-                          @ShellOption(help = "First name author") String firstName,
-                          @ShellOption(help = "Last name author") String lastName,
-                          @ShellOption(help = "Genre of the book") String genre) {
+                          @ShellOption(help = "Author id") Long authorId,
+                          @ShellOption(help = "Genre id") Long genreId) {
 
         Book book = Book.builder()
                 .title(title)
-                .genre(new Genre(null, genre))
-                .author(new Author(null, firstName, lastName))
+                .genre(new Genre(genreId))
+                .author(new Author(authorId))
                 .build();
         Book persistBook = bookService.save(book);
         return persistBook.toString();
@@ -62,14 +61,13 @@ public class BookCommandShell implements BookCommand {
     @ShellMethod(value = "Update book", key = "upt b")
     public String updateBook(@ShellOption(help = "Book id") Long id,
                              @ShellOption(help = "Update title of the book") String title,
-                             @ShellOption(help = "Update first name author") String firstName,
-                             @ShellOption(help = "Update last name author") String lastName,
-                             @ShellOption(help = "Update genre of the book") String genre) {
+                             @ShellOption(help = "Author id") Long authorId,
+                             @ShellOption(help = "Genre id") Long genreId) {
         Book book = Book.builder()
                 .id(id)
                 .title(title)
-                .author(new Author(null, firstName, lastName))
-                .genre(new Genre(null, genre))
+                .author(new Author(authorId))
+                .genre(new Genre(genreId))
                 .build();
         bookService.updateBook(book);
         return "Book successful updated!";
