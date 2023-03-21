@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import ru.otus.book_storage.dao.comment.CommentDao;
+import ru.otus.book_storage.dto.CommentResponseDto;
 import ru.otus.book_storage.dto.CommentUpdateDto;
 import ru.otus.book_storage.exceptions.NotFoundException;
 import ru.otus.book_storage.models.Book;
@@ -104,7 +105,7 @@ class CommentServiceImplTest {
                 .comments(commentsByBookId)
                 .build();
         when(bookService.getById(bookId)).thenReturn(findBook);
-        List<Comment> byBookId = commentService.findByBookId(bookId);
+        List<CommentResponseDto> byBookId = commentService.findByBookId(bookId);
 
         assertNotNull(byBookId);
         assertFalse(byBookId.isEmpty());

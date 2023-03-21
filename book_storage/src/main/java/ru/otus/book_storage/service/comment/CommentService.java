@@ -1,5 +1,6 @@
 package ru.otus.book_storage.service.comment;
 
+import ru.otus.book_storage.dto.CommentResponseDto;
 import ru.otus.book_storage.dto.CommentUpdateDto;
 import ru.otus.book_storage.models.Comment;
 
@@ -12,7 +13,7 @@ public interface CommentService {
 
     void deleteById(long id);
 
-    List<Comment> findByBookId(long bookId);
+    List<CommentResponseDto> findByBookId(long bookId);
 
     void updateComment(CommentUpdateDto updateComment);
 }

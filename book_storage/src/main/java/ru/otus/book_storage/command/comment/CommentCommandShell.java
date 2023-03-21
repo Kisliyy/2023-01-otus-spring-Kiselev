@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
-import org.springframework.transaction.annotation.Transactional;
+import ru.otus.book_storage.dto.CommentResponseDto;
 import ru.otus.book_storage.dto.CommentUpdateDto;
 import ru.otus.book_storage.models.Comment;
 import ru.otus.book_storage.service.comment.CommentService;
@@ -35,12 +35,11 @@ public class CommentCommandShell implements CommentCommand {
 
     @Override
     @ShellMethod(value = "Get comment by book id", key = "get c by b")
-    @Transactional(readOnly = true)
     public String getCommentsByBook(@ShellOption(help = "Book id") long bookId) {
-        List<Comment> byBookId = commentService.findByBookId(bookId);
+        List<CommentResponseDto> byBookId = commentService.findByBookId(bookId);
         return byBookId
                 .stream()
-                .map(Comment::toString)
+                .map(CommentResponseDto::toString)
                 .collect(Collectors.joining("\n"));
     }
 
