@@ -159,9 +159,9 @@ class BookServiceImplTest {
     @DisplayName("It will not return an empty list of books")
     void getAllBooksNotEmptyListTest() {
         List<Book> books = List.of(new Book(), new Book(), new Book());
-        when(bookDao.getAll()).thenReturn(books);
+        when(bookDao.findAll()).thenReturn(books);
         List<Book> allBook = bookService.getAllBook();
-        verify(bookDao, times(1)).getAll();
+        verify(bookDao, times(1)).findAll();
         assertEquals(3, allBook.size());
     }
 
@@ -181,20 +181,20 @@ class BookServiceImplTest {
         Book existBook = Book.builder().id(bookId).author(existAuthor).genre(existGenre).title(title).build();
 
 
-        when(bookDao.getById(bookId)).thenReturn(Optional.of(existBook));
-        Optional<Book> byId = bookDao.getById(bookId);
+        when(bookDao.findById(bookId)).thenReturn(Optional.of(existBook));
+        Optional<Book> byId = bookDao.findById(bookId);
         assertFalse(byId.isEmpty());
         Book findBook = byId.get();
-        verify(bookDao, times(1)).getById(bookId);
+        verify(bookDao, times(1)).findById(bookId);
         assertEquals(existBook, findBook);
     }
 
     @Test
     @DisplayName("Find book by id return exception")
     void findBookByIdReturnNotFoundExceptionTest() {
-        when(bookDao.getById(anyLong())).thenReturn(Optional.empty());
+        when(bookDao.findById(anyLong())).thenReturn(Optional.empty());
         assertThrows(NotFoundException.class, () -> bookService.getById(anyLong()));
-        verify(bookDao, times(1)).getById(anyLong());
+        verify(bookDao, times(1)).findById(anyLong());
     }
 
 
@@ -250,14 +250,14 @@ class BookServiceImplTest {
                 .genre(findUpdateGenre)
                 .build();
 
-        when(bookDao.getById(bookId)).thenReturn(Optional.of(existBook));
+        when(bookDao.findById(bookId)).thenReturn(Optional.of(existBook));
         when(authorService.findById(updateAuthorId)).thenReturn(findUpdateAuthor);
         when(genreService.getById(updateGenreId)).thenReturn(findUpdateGenre);
         when(bookDao.save(savedUpdatedBook)).thenReturn(savedUpdatedBook);
 
         bookService.updateBook(updatedBook);
 
-        verify(bookDao, times(1)).getById(bookId);
+        verify(bookDao, times(1)).findById(bookId);
         verify(authorService, times(1)).findById(updateAuthorId);
 
         verify(genreService, times(1)).getById(updateGenreId);

@@ -35,7 +35,7 @@ class AuthorServiceImplTest {
                 new Author()
         );
 
-        when(authorDao.getAll()).thenReturn(authors);
+        when(authorDao.findAll()).thenReturn(authors);
 
         List<Author> allAuthors = authorService.getAll();
         assertNotNull(allAuthors);

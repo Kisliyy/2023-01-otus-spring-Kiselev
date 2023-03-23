@@ -33,7 +33,7 @@ class GenreServiceImplTest {
                 new Genre(),
                 new Genre()
         );
-        when(genreDao.getAll()).thenReturn(genres);
+        when(genreDao.findAll()).thenReturn(genres);
 
         List<Genre> allGenres = genreService.getAll();
         assertNotNull(allGenres);
@@ -48,16 +48,16 @@ class GenreServiceImplTest {
                 .genre(textGenre)
                 .build();
 
-        when(genreDao.getById(genreId)).thenReturn(Optional.of(findGenre));
+        when(genreDao.findById(genreId)).thenReturn(Optional.of(findGenre));
         Genre genre = genreService.getById(genreId);
         assertEquals(findGenre, genre);
     }
 
     @Test
     void getByGenreReturnNullTest() {
-        when(genreDao.getById(anyLong())).thenReturn(Optional.empty());
+        when(genreDao.findById(anyLong())).thenReturn(Optional.empty());
         assertThrows(NotFoundException.class, () -> genreService.getById(anyLong()));
-        verify(genreDao, times(1)).getById(anyLong());
+        verify(genreDao, times(1)).findById(anyLong());
     }
 
 }

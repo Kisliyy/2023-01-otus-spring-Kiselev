@@ -2,7 +2,6 @@ package ru.otus.book_storage.service.author;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import ru.otus.book_storage.dao.author.AuthorDao;
 import ru.otus.book_storage.exceptions.NotFoundException;
 import ru.otus.book_storage.models.Author;
@@ -17,13 +16,11 @@ public class AuthorServiceImpl implements AuthorService {
 
 
     @Override
-    @Transactional(readOnly = true)
     public List<Author> getAll() {
-        return authorDao.getAll();
+        return authorDao.findAll();
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Author findById(Long id) {
         return authorDao
                 .findById(id)

@@ -2,7 +2,6 @@ package ru.otus.book_storage.service.book;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import ru.otus.book_storage.dao.book.BookDao;
 import ru.otus.book_storage.exceptions.NotFoundException;
 import ru.otus.book_storage.models.Author;
@@ -23,20 +22,17 @@ public class BookServiceImpl implements BookService {
     private final GenreService genreService;
 
     @Override
-    @Transactional
     public Book save(Book saveBook) {
         checkAuthorAndGenre(saveBook);
         return bookDao.save(saveBook);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<Book> getAllBook() {
-        return bookDao.getAll();
+        return bookDao.findAll();
     }
 
     @Override
-    @Transactional
     public void deleteById(Long id) {
         bookDao.deleteById(id);
     }
@@ -44,14 +40,13 @@ public class BookServiceImpl implements BookService {
     @Override
     public Book getById(Long id) {
         return bookDao
-                .getById(id)
+                .findById(id)
                 .orElseThrow(() -> new NotFoundException("Book not found by id: " + id));
     }
 
     @Override
-    @Transactional
     public void updateBook(Book book) {
-        Optional<Book> findBook = bookDao.getById(book.getId());
+        Optional<Book> findBook = bookDao.findById(book.getId());
         if (findBook.isPresent()) {
             checkAuthorAndGenre(book);
             bookDao.save(book);
