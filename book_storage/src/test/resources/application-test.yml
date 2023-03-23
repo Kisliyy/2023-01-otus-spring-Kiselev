@@ -1,0 +1,14 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: none
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: true
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:book_storage_test
+    username: test
+    password: password
+  liquibase:
+    change-log: classpath:db/liquibase/changelog/master-test.xml
+    driver-class-name: org.h2.Driver
