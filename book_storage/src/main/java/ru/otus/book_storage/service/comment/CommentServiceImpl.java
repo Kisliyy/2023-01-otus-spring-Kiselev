@@ -23,7 +23,6 @@ public class CommentServiceImpl implements CommentService {
     private final CommentDao commentDao;
 
     @Override
-    @Transactional
     public Comment saveComment(String text, long bookId) {
         Book bookById = bookService.getById(bookId);
         Comment savedComment = Comment.builder()
@@ -41,7 +40,6 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    @Transactional
     public void deleteById(long id) {
         commentDao.deleteById(id);
     }
@@ -58,7 +56,6 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    @Transactional
     public void updateComment(CommentUpdateDto updateCommentDto) {
         String text = updateCommentDto.getText();
         if (StringUtils.hasText(text)) {

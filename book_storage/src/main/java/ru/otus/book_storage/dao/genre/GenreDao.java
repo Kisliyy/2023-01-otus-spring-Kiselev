@@ -1,13 +1,7 @@
 package ru.otus.book_storage.dao.genre;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import ru.otus.book_storage.models.Genre;
 
-import java.util.List;
-import java.util.Optional;
-
-public interface GenreDao {
-
-    List<Genre> getAll();
-
-    Optional<Genre> getById(long id);
+public interface GenreDao extends JpaRepository<Genre, Long> {
 }
