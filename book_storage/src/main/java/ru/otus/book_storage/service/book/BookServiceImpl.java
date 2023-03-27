@@ -2,6 +2,7 @@ package ru.otus.book_storage.service.book;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.otus.book_storage.dao.book.BookDao;
 import ru.otus.book_storage.exceptions.NotFoundException;
 import ru.otus.book_storage.models.Author;
@@ -45,6 +46,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    @Transactional
     public void updateBook(Book book) {
         Optional<Book> findBook = bookDao.findById(book.getId());
         if (findBook.isPresent()) {
