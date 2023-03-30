@@ -21,8 +21,8 @@ public class BookCommandShell implements BookCommand {
     @Override
     @ShellMethod(value = "Add book", key = "add b")
     public String addBook(@ShellOption(help = "Title of the book") String title,
-                          @ShellOption(help = "Author id") Long authorId,
-                          @ShellOption(help = "Genre id") Long genreId) {
+                          @ShellOption(help = "Author id") String authorId,
+                          @ShellOption(help = "Genre id") String genreId) {
 
         Book book = Book.builder()
                 .title(title)
@@ -45,24 +45,24 @@ public class BookCommandShell implements BookCommand {
 
     @Override
     @ShellMethod(value = "Delete book", key = "delete book")
-    public String deleteBook(@ShellOption(help = "Book id") Long id) {
+    public String deleteBook(@ShellOption(help = "Book id") String id) {
         bookService.deleteById(id);
         return String.format("Book with id:%s successful deleted", id);
     }
 
     @Override
     @ShellMethod(value = "Get book by id", key = "get book")
-    public String getBook(Long id) {
+    public String getBook(String id) {
         Book byId = bookService.getById(id);
         return byId.toString();
     }
 
     @Override
     @ShellMethod(value = "Update book", key = "upt b")
-    public String updateBook(@ShellOption(help = "Book id") Long id,
+    public String updateBook(@ShellOption(help = "Book id") String id,
                              @ShellOption(help = "Update title of the book") String title,
-                             @ShellOption(help = "Author id") Long authorId,
-                             @ShellOption(help = "Genre id") Long genreId) {
+                             @ShellOption(help = "Author id") String authorId,
+                             @ShellOption(help = "Genre id") String genreId) {
         Book book = Book.builder()
                 .id(id)
                 .title(title)

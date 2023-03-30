@@ -2,7 +2,7 @@ package ru.otus.book_storage.service.author;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.otus.book_storage.dao.author.AuthorDao;
+import ru.otus.book_storage.dao.author.AuthorRepository;
 import ru.otus.book_storage.exceptions.NotFoundException;
 import ru.otus.book_storage.models.Author;
 
@@ -12,17 +12,17 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AuthorServiceImpl implements AuthorService {
 
-    private final AuthorDao authorDao;
+    private final AuthorRepository authorRepository;
 
 
     @Override
     public List<Author> getAll() {
-        return authorDao.findAll();
+        return authorRepository.findAll();
     }
 
     @Override
-    public Author findById(Long id) {
-        return authorDao
+    public Author findById(String id) {
+        return authorRepository
                 .findById(id)
                 .orElseThrow(() -> new NotFoundException("Author not found by id: " + id));
     }

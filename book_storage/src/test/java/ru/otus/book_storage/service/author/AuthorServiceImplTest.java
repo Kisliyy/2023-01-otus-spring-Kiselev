@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import ru.otus.book_storage.dao.author.AuthorDao;
+import ru.otus.book_storage.dao.author.AuthorRepository;
 import ru.otus.book_storage.exceptions.NotFoundException;
 import ru.otus.book_storage.models.Author;
 
@@ -18,7 +18,7 @@ import static org.mockito.Mockito.*;
 class AuthorServiceImplTest {
 
     @MockBean
-    private AuthorDao authorDao;
+    private AuthorRepository authorRepository;
 
     @Autowired
     private AuthorService authorService;
@@ -35,7 +35,7 @@ class AuthorServiceImplTest {
                 new Author()
         );
 
-        when(authorDao.findAll()).thenReturn(authors);
+        when(authorRepository.findAll()).thenReturn(authors);
 
         List<Author> allAuthors = authorService.getAll();
         assertNotNull(allAuthors);
@@ -47,24 +47,24 @@ class AuthorServiceImplTest {
 
     @Test
     void findByIdReturnAuthorTest() {
-        long authorId = 1;
+        String authorId = "authorId";
         Author findAuthor = Author.builder()
                 .id(authorId)
                 .lastName(lastName)
                 .firstName(firstName)
                 .build();
 
-        when(authorDao.findById(authorId)).thenReturn(Optional.of(findAuthor));
+        when(authorRepository.findById(authorId)).thenReturn(Optional.of(findAuthor));
 
         Author author = authorService.findById(authorId);
         assertEquals(findAuthor, author);
-        verify(authorDao, times(1)).findById(authorId);
+        verify(authorRepository, times(1)).findById(authorId);
     }
 
     @Test
     void findByFirstNameAndLastNameReturnNullTest() {
-        when(authorDao.findById(anyLong())).thenReturn(Optional.empty());
-        assertThrows(NotFoundException.class, () -> authorService.findById(anyLong()));
-        verify(authorDao, times(1)).findById(anyLong());
+        when(authorRepository.findById(anyString())).thenReturn(Optional.empty());
+        assertThrows(NotFoundException.class, () -> authorService.findById(anyString()));
+        verify(authorRepository, times(1)).findById(anyString());
     }
 }

@@ -4,24 +4,22 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import javax.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
-@Table(name = "genres")
+@Document
 public class Genre {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
-    @Column(name = "genre", nullable = false, unique = true)
-    private String genre;
+    private String id;
+    @Field(value = "name")
+    private String name;
 
-    public Genre(long id) {
+    public Genre(String id) {
         this.id = id;
     }
 
@@ -30,7 +28,7 @@ public class Genre {
         return String.format(
                 "id: %s genre: %s",
                 id,
-                genre
+                name
         );
     }
 }

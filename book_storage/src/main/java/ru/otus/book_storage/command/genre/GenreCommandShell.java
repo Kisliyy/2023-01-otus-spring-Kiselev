@@ -27,7 +27,7 @@ public class GenreCommandShell implements GenreCommand {
 
     @Override
     @ShellMethod(value = "Gen genre by id", key = "genre by")
-    public String getById(@ShellOption(help = "Genre id") Long id) {
+    public String getById(@ShellOption(help = "Genre id") String id) {
         Genre findGenre = genreService.getById(id);
         return findGenre.toString();
     }

@@ -4,33 +4,26 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import javax.persistence.*;
-import java.util.List;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Entity
-@Table(name = "books")
+@Document
 public class Book {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
-    @Column(name = "title")
+    private String id;
+    @Field(value = "title")
     private String title;
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "genre_id")
-    private Genre genre;
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "author_id")
-    private Author author;
 
-    @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true)
-    @JoinColumn(name = "book_id")
-    private List<Comment> comments;
+    @Field(value = "genre")
+    private Genre genre;
+
+    @Field(value = "author")
+    private Author author;
 
     @Override
     public String toString() {
@@ -38,7 +31,7 @@ public class Book {
                 "id: %s, book: %s, genre: %s, author: %s %s",
                 id,
                 title,
-                genre.getGenre(),
+                genre.getName(),
                 author.getFirstName(),
                 author.getLastName()
         );

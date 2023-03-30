@@ -26,7 +26,7 @@ public class AuthorCommandShell implements AuthorCommand {
 
     @Override
     @ShellMethod(value = "Get author by id", key = "author by")
-    public String findById(Long id) {
+    public String findById(String id) {
         Author findAuthor = authorService.findById(id);
         return findAuthor.toString();
     }

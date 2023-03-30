@@ -1,13 +1,13 @@
 package ru.otus.book_storage.command.comment;
 
 public interface CommentCommand {
-    String addComment(long bookId, String text);
+    String addComment(String bookId, String text);
 
-    String getComment(long commentId);
+    String getComment(String commentId);
 
-    String getCommentsByBook(long bookId);
+    String getCommentsByBook(String bookId);
 
-    String deleteComment(long commentId);
+    String deleteComment(String commentId);
 
-    String updateComment(long commentId, String text);
+    String updateComment(String commentId, String text);
 }

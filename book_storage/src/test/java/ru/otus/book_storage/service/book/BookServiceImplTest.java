@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import ru.otus.book_storage.dao.book.BookDao;
+import ru.otus.book_storage.dao.book.BookRepository;
 import ru.otus.book_storage.exceptions.NotFoundException;
 import ru.otus.book_storage.models.Author;
 import ru.otus.book_storage.models.Book;
@@ -24,7 +24,7 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 @SpringBootTest(classes = BookServiceImpl.class)
 class BookServiceImplTest {
     @MockBean
-    private BookDao bookDao;
+    private BookRepository bookRepository;
     @MockBean
     private GenreService genreService;
     @MockBean
@@ -33,9 +33,9 @@ class BookServiceImplTest {
     private BookService bookService;
 
     private final String title = "test title";
-    private final long authorId = 1L;
-    private final long bookId = 1L;
-    private final long genreId = 10L;
+    private final String authorId = "authorId";
+    private final String bookId = "bookId";
+    private final String genreId = "genreId";
     private final String firstName = "first_name";
     private final String lastName = "last_name";
     private final String bookGenre = "genre";
@@ -47,7 +47,7 @@ class BookServiceImplTest {
     @BeforeEach
     void init() {
         existAuthor = Author.builder().id(authorId).firstName(firstName).lastName(lastName).build();
-        existGenre = Genre.builder().id(genreId).genre(bookGenre).build();
+        existGenre = Genre.builder().id(genreId).name(bookGenre).build();
         existBook = Book.builder().id(bookId).title(title).author(existAuthor).genre(existGenre).build();
     }
 
@@ -55,8 +55,8 @@ class BookServiceImplTest {
     @Test
     @DisplayName("Saving a book with an unknown author id will return a NotFoundException")
     void saveBookWithUnknownIdAuthorReturnNotFoundExceptionTest() {
-        Long unknownIdAuthor = 20L;
-        Long unknownIdGenre = 20L;
+        String unknownIdAuthor = "unknownIdAuthor";
+        String unknownIdGenre = "unknownIdGenre";
         Author author = Author
                 .builder()
                 .id(unknownIdAuthor)
@@ -73,13 +73,13 @@ class BookServiceImplTest {
                 .author(author)
                 .title(title).build();
 
-        when(authorService.findById(anyLong())).thenThrow(NotFoundException.class);
+        when(authorService.findById(anyString())).thenThrow(NotFoundException.class);
 
         assertThrows(NotFoundException.class, () -> bookService.save(savedBook));
 
-        verify(authorService, times(1)).findById(anyLong());
-        verify(genreService, times(0)).getById(anyLong());
-        verify(bookDao, times(0)).save(any());
+        verify(authorService, times(1)).findById(anyString());
+        verify(genreService, times(0)).getById(anyString());
+        verify(bookRepository, times(0)).save(any());
     }
 
     @Test
@@ -89,18 +89,18 @@ class BookServiceImplTest {
 
         Author findAuthor = existAuthor;
 
-        Genre genre = Genre.builder().id(anyLong()).build();
+        Genre genre = Genre.builder().id(anyString()).build();
 
         Book savedBook = Book.builder().genre(genre).author(author).title(title).build();
 
         when(authorService.findById(authorId)).thenReturn(findAuthor);
-        when(genreService.getById(anyLong())).thenThrow(NotFoundException.class);
+        when(genreService.getById(anyString())).thenThrow(NotFoundException.class);
 
         assertThrows(NotFoundException.class, () -> bookService.save(savedBook));
 
-        verify(authorService, times(1)).findById(anyLong());
-        verify(genreService, times(1)).getById(anyLong());
-        verify(bookDao, times(0)).save(any());
+        verify(authorService, times(1)).findById(anyString());
+        verify(genreService, times(1)).getById(anyString());
+        verify(bookRepository, times(0)).save(any());
     }
 
     @Test
@@ -144,7 +144,7 @@ class BookServiceImplTest {
 
         when(authorService.findById(authorId)).thenReturn(findAuthor);
         when(genreService.getById(genreId)).thenReturn(findGenre);
-        when(bookDao.save(savedBook)).thenReturn(persistBook);
+        when(bookRepository.save(savedBook)).thenReturn(persistBook);
 
         Book persistBookExample = bookService.save(book);
 
@@ -152,49 +152,55 @@ class BookServiceImplTest {
 
         verify(authorService, times(1)).findById(authorId);
         verify(genreService, times(1)).getById(genreId);
-        verify(bookDao, times(1)).save(savedBook);
+        verify(bookRepository, times(1)).save(savedBook);
     }
 
     @Test
     @DisplayName("It will not return an empty list of books")
     void getAllBooksNotEmptyListTest() {
         List<Book> books = List.of(new Book(), new Book(), new Book());
-        when(bookDao.findAll()).thenReturn(books);
+        when(bookRepository.findAll()).thenReturn(books);
         List<Book> allBook = bookService.getAllBook();
-        verify(bookDao, times(1)).findAll();
+        verify(bookRepository, times(1)).findAll();
         assertEquals(3, allBook.size());
     }
 
     @Test
     @DisplayName("Delete book by id")
     void deleteBookByIdTest() {
-        long bookId = 1L;
-        doNothing().when(bookDao).deleteById(bookId);
+        String bookId = "bookId";
+        doNothing().when(bookRepository).deleteById(bookId);
         bookService.deleteById(bookId);
-        verify(bookDao, times(1)).deleteById(bookId);
+        verify(bookRepository, times(1)).deleteById(bookId);
     }
 
     @Test
     @DisplayName("Find book by id successful")
     void findBookByIdSuccessfulTest() {
-        long bookId = 1L;
-        Book existBook = Book.builder().id(bookId).author(existAuthor).genre(existGenre).title(title).build();
+        String bookId = "bookId";
+        Book existBook = Book
+                .builder()
+                .id(bookId)
+                .author(existAuthor)
+                .genre(existGenre)
+                .title(title)
+                .build();
 
 
-        when(bookDao.findById(bookId)).thenReturn(Optional.of(existBook));
-        Optional<Book> byId = bookDao.findById(bookId);
+        when(bookRepository.findById(bookId)).thenReturn(Optional.of(existBook));
+        Optional<Book> byId = bookRepository.findById(bookId);
         assertFalse(byId.isEmpty());
         Book findBook = byId.get();
-        verify(bookDao, times(1)).findById(bookId);
+        verify(bookRepository, times(1)).findById(bookId);
         assertEquals(existBook, findBook);
     }
 
     @Test
     @DisplayName("Find book by id return exception")
     void findBookByIdReturnNotFoundExceptionTest() {
-        when(bookDao.findById(anyLong())).thenReturn(Optional.empty());
-        assertThrows(NotFoundException.class, () -> bookService.getById(anyLong()));
-        verify(bookDao, times(1)).findById(anyLong());
+        when(bookRepository.findById(anyString())).thenReturn(Optional.empty());
+        assertThrows(NotFoundException.class, () -> bookService.getById(anyString()));
+        verify(bookRepository, times(1)).findById(anyString());
     }
 
 
@@ -203,10 +209,10 @@ class BookServiceImplTest {
     void updateBookWithNewAuthorAndGenre() {
         String newTitle = "newTitle";
 
-        Long updateGenreId = 10000L;
+        String updateGenreId = "updateGenreId";
         String updateBookGenre = "updateBookGenre";
 
-        Long updateAuthorId = 10000L;
+        String updateAuthorId = "updateAuthorId";
         String updateFirstNameAuthor = "updateFirstNameAuthor";
         String updateLastNameAuthor = "updateLastNameAuthor";
 
@@ -219,7 +225,7 @@ class BookServiceImplTest {
         Genre findUpdateGenre = Genre
                 .builder()
                 .id(updateGenreId)
-                .genre(updateBookGenre)
+                .name(updateBookGenre)
                 .build();
 
         Author updateAuthor = Author
@@ -250,17 +256,17 @@ class BookServiceImplTest {
                 .genre(findUpdateGenre)
                 .build();
 
-        when(bookDao.findById(bookId)).thenReturn(Optional.of(existBook));
+        when(bookRepository.existsById(bookId)).thenReturn(true);
         when(authorService.findById(updateAuthorId)).thenReturn(findUpdateAuthor);
         when(genreService.getById(updateGenreId)).thenReturn(findUpdateGenre);
-        when(bookDao.save(savedUpdatedBook)).thenReturn(savedUpdatedBook);
+        when(bookRepository.save(savedUpdatedBook)).thenReturn(savedUpdatedBook);
 
         bookService.updateBook(updatedBook);
 
-        verify(bookDao, times(1)).findById(bookId);
+        verify(bookRepository, times(1)).existsById(bookId);
         verify(authorService, times(1)).findById(updateAuthorId);
 
         verify(genreService, times(1)).getById(updateGenreId);
-        verify(bookDao, times(1)).save(updatedBook);
+        verify(bookRepository, times(1)).save(updatedBook);
     }
 }
