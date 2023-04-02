@@ -1,28 +1,26 @@
 package ru.otus.book_storage.models;
 
 import lombok.*;
-
-import javax.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode
 @AllArgsConstructor
 @Builder
-@Table(name = "comments")
-@Entity
+@Document
 public class Comment {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
+    private String id;
 
-    @Column(name = "text_comment", nullable = false)
+    @Field(value = "text")
     private String text;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinColumn(name = "book_id", nullable = false)
+    @DBRef
     private Book book;
 
     @Override

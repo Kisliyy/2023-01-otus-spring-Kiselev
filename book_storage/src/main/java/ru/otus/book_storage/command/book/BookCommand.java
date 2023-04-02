@@ -2,17 +2,17 @@ package ru.otus.book_storage.command.book;
 
 public interface BookCommand {
     String addBook(String title,
-                   Long authorId,
-                   Long genreId);
+                   String authorId,
+                   String genreId);
 
     String getAllBook();
 
-    String deleteBook(Long id);
+    String deleteBook(String id);
 
-    String getBook(Long id);
+    String getBook(String id);
 
-    String updateBook(Long bookId,
+    String updateBook(String bookId,
                       String title,
-                      Long authorId,
-                      Long genreId);
+                      String authorId,
+                      String genreId);
 }
