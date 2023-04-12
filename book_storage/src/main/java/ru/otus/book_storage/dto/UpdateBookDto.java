@@ -3,9 +3,6 @@ package ru.otus.book_storage.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.otus.book_storage.models.Author;
-import ru.otus.book_storage.models.Book;
-import ru.otus.book_storage.models.Genre;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -22,15 +19,4 @@ public class UpdateBookDto {
     private String title;
     private long authorId;
     private long genreId;
-
-    public Book toDomainObject() {
-        Author author = new Author(authorId);
-        Genre genre = new Genre(genreId);
-        return Book.builder()
-                .id(id)
-                .title(title)
-                .author(author)
-                .genre(genre)
-                .build();
-    }
 }
