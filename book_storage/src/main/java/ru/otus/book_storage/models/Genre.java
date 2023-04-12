@@ -18,8 +18,8 @@ public class Genre {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
-    @Column(name = "genre", nullable = false, unique = true)
-    private String genre;
+    @Column(name = "name", nullable = false, unique = true)
+    private String name;
 
     public Genre(long id) {
         this.id = id;
@@ -30,7 +30,7 @@ public class Genre {
         return String.format(
                 "id: %s genre: %s",
                 id,
-                genre
+                name
         );
     }
 }

@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import ru.otus.book_storage.dao.comment.CommentDao;
+import ru.otus.book_storage.dao.comment.CommentRepository;
 import ru.otus.book_storage.dto.CommentResponseDto;
 import ru.otus.book_storage.dto.CommentUpdateDto;
 import ru.otus.book_storage.exceptions.NotFoundException;
@@ -24,7 +24,7 @@ class CommentServiceImplTest {
     @MockBean
     private BookService bookService;
     @MockBean
-    private CommentDao commentDao;
+    private CommentRepository commentRepository;
 
     @Autowired
     private CommentService commentService;
@@ -49,7 +49,7 @@ class CommentServiceImplTest {
                 .book(findBook)
                 .build();
         when(bookService.getById(bookId)).thenReturn(findBook);
-        when(commentDao.save(savedComment)).thenReturn(persistComment);
+        when(commentRepository.save(savedComment)).thenReturn(persistComment);
 
         Comment comment = commentService.saveComment(textComment, bookId);
 
@@ -57,7 +57,7 @@ class CommentServiceImplTest {
         assertEquals(textComment, comment.getText());
 
         verify(bookService, times(1)).getById(bookId);
-        verify(commentDao, times(1)).save(savedComment);
+        verify(commentRepository, times(1)).save(savedComment);
     }
 
 
@@ -67,30 +67,30 @@ class CommentServiceImplTest {
                 .id(commentId)
                 .text(textComment)
                 .build();
-        when(commentDao.findById(commentId)).thenReturn(Optional.of(findComment));
+        when(commentRepository.findById(commentId)).thenReturn(Optional.of(findComment));
 
         Comment comment = commentService.findById(commentId);
         assertEquals(commentId, comment.getId());
         assertEquals(textComment, comment.getText());
-        verify(commentDao, times(1)).findById(commentId);
+        verify(commentRepository, times(1)).findById(commentId);
     }
 
     @Test
     void findByIdReturnNotFoundExceptionTest() {
-        when(commentDao.findById(anyLong())).thenReturn(Optional.empty());
+        when(commentRepository.findById(anyLong())).thenReturn(Optional.empty());
         assertThrows(NotFoundException.class, () -> commentService.findById(anyLong()));
-        verify(commentDao, times(1)).findById(anyLong());
+        verify(commentRepository, times(1)).findById(anyLong());
     }
 
     @Test
     void deleteByIdCommentTest() {
         doNothing()
-                .when(commentDao)
+                .when(commentRepository)
                 .deleteById(commentId);
 
         commentService.deleteById(commentId);
 
-        verify(commentDao, times(1)).deleteById(commentId);
+        verify(commentRepository, times(1)).deleteById(commentId);
     }
 
     @Test
@@ -123,11 +123,11 @@ class CommentServiceImplTest {
                 .text(textComment)
                 .build();
 
-        when(commentDao.findById(commentId)).thenReturn(Optional.of(updatedComment));
+        when(commentRepository.findById(commentId)).thenReturn(Optional.of(updatedComment));
         updatedComment.setText(newTextComment);
-        when(commentDao.save(updatedComment)).thenReturn(updatedComment);
+        when(commentRepository.save(updatedComment)).thenReturn(updatedComment);
         commentService.updateComment(updatedCommentDto);
-        verify(commentDao, times(1)).findById(commentId);
-        verify(commentDao, times(1)).save(updatedComment);
+        verify(commentRepository, times(1)).findById(commentId);
+        verify(commentRepository, times(1)).save(updatedComment);
     }
 }

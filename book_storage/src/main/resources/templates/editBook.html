@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Edit book</title>
+    <style type="text/css">
+        body {
+            padding: 50px;
+        }
+
+        label {
+            display: inline-block;
+            width: 100px;
+        }
+
+        input:read-only {
+            background: lightgray;
+        }
+
+        .row {
+            margin-top: 10px;
+        }
+
+        .errors {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+<form id="edit-form" action="editBook.html" th:action="@{/book/update(id=${book.id})}" th:method="POST" th:object="${book}">
+    <h3>Book Info:</h3>
+
+    <div class="row">
+        <label for="id-input">Id:</label>
+        <input id="id-input" name="id" type="text" readonly="readonly" th:value="*{id}" value="1"/>
+        <div class="errors" th:if="${#fields.hasErrors('id')}" th:errors="*{id}">Wrong book id error</div>
+    </div>
+
+    <div class="row">
+        <label for="book-title-input">Title:</label>
+        <input id="book-title-input" name="title" type="text" th:value="*{title}" value="Title Book"/>
+        <div class="errors" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Wrong book title error</div>
+    </div>
+
+    <div class="row">
+        <label>Genre:</label>
+        <select id="genreId" name="genreId" class="form-control">
+            <option th:each="genre: ${genres}"
+                    th:text="${genre.name}"
+                    th:attr="name='genreId'"
+                    th:selected="(${genre.id} == *{genre.id})"
+                    th:value="${genre.id}">
+            </option>
+        </select>
+    </div>
+
+    <div class="row">
+        <label>Author:</label>
+        <select id="authorId" name="authorId" class="form-control">
+            <option th:each="author: ${authors}"
+                    th:text="${author.firstName} + ' ' + ${author.lastName}"
+                    th:attr="name='authorId'"
+                    th:selected="(${author.id} == *{author.id})"
+                    th:value="${author.id}">
+            </option>
+        </select>
+    </div>
+
+    <div class="row">
+        <button type="submit">Save</button>
+        <a href="allBook.html" th:href="@{/book/all}">
+            <button type="button">Cancel</button>
+        </a>
+    </div>
+</form>
+
+<form th:action="@{/book/delete(id=${book.id})}" th:object="${book}" th:method="post">
+    <div class="row">
+        <button type="submit" onClick="return confirm('Are your sure?')">Delete</button>
+    </div>
+</form>
+
+</body>
+</html>

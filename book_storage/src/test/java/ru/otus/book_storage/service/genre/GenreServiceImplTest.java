@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import ru.otus.book_storage.dao.genre.GenreDao;
+import ru.otus.book_storage.dao.genre.GenreRepository;
 import ru.otus.book_storage.exceptions.NotFoundException;
 import ru.otus.book_storage.models.Genre;
 
@@ -18,7 +18,7 @@ import static org.mockito.Mockito.*;
 class GenreServiceImplTest {
 
     @MockBean
-    private GenreDao genreDao;
+    private GenreRepository genreRepository;
 
     @Autowired
     private GenreService genreService;
@@ -33,7 +33,7 @@ class GenreServiceImplTest {
                 new Genre(),
                 new Genre()
         );
-        when(genreDao.findAll()).thenReturn(genres);
+        when(genreRepository.findAll()).thenReturn(genres);
 
         List<Genre> allGenres = genreService.getAll();
         assertNotNull(allGenres);
@@ -45,19 +45,19 @@ class GenreServiceImplTest {
     void getByIdReturnGenreTest() {
         Genre findGenre = Genre.builder()
                 .id(genreId)
-                .genre(textGenre)
+                .name(textGenre)
                 .build();
 
-        when(genreDao.findById(genreId)).thenReturn(Optional.of(findGenre));
+        when(genreRepository.findById(genreId)).thenReturn(Optional.of(findGenre));
         Genre genre = genreService.getById(genreId);
         assertEquals(findGenre, genre);
     }
 
     @Test
     void getByGenreReturnNullTest() {
-        when(genreDao.findById(anyLong())).thenReturn(Optional.empty());
+        when(genreRepository.findById(anyLong())).thenReturn(Optional.empty());
         assertThrows(NotFoundException.class, () -> genreService.getById(anyLong()));
-        verify(genreDao, times(1)).findById(anyLong());
+        verify(genreRepository, times(1)).findById(anyLong());
     }
 
 }

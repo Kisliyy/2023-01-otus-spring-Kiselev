@@ -1,5 +1,6 @@
 package ru.otus.book_storage.service.book;
 
+import ru.otus.book_storage.dto.UpdateBookDto;
 import ru.otus.book_storage.models.Book;
 
 import java.util.List;
@@ -13,5 +14,5 @@ public interface BookService {
 
     Book getById(Long id);
 
-    void updateBook(Book book);
+    void updateBook(UpdateBookDto bookDto);
 }

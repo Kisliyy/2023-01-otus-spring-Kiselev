@@ -28,8 +28,10 @@ public class Book {
     @JoinColumn(name = "author_id")
     private Author author;
 
-    @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true)
-    @JoinColumn(name = "book_id")
+    @OneToMany(fetch = FetchType.LAZY,
+            mappedBy = "book",
+            orphanRemoval = true,
+            cascade = CascadeType.REMOVE)
     private List<Comment> comments;
 
     @Override
@@ -38,7 +40,7 @@ public class Book {
                 "id: %s, book: %s, genre: %s, author: %s %s",
                 id,
                 title,
-                genre.getGenre(),
+                genre.getName(),
                 author.getFirstName(),
                 author.getLastName()
         );
