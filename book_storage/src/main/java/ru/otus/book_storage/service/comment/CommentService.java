@@ -1,19 +1,18 @@
 package ru.otus.book_storage.service.comment;
 
-import ru.otus.book_storage.dto.CommentResponseDto;
 import ru.otus.book_storage.dto.CommentUpdateDto;
 import ru.otus.book_storage.models.Comment;
 
 import java.util.List;
 
 public interface CommentService {
-    Comment saveComment(String text, long bookId);
+    Comment saveComment(String text, String bookId);
 
-    Comment findById(long id);
+    Comment findById(String id);
 
-    void deleteById(long id);
+    void deleteById(String id);
 
-    List<CommentResponseDto> findByBookId(long bookId);
+    List<Comment> findByBookId(String bookId);
 
     void updateComment(CommentUpdateDto updateComment);
 }

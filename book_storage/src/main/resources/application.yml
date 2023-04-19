@@ -1,14 +1,14 @@
 server:
   port: 8080
 spring:
-  datasource:
-    url: jdbc:postgresql://127.0.0.1:5437/book_storage
-    username: postgres
-    password: password
-    driver-class-name: org.postgresql.Driver
-  liquibase:
-    change-log: classpath:/db/liquibase/master.xml
-  jpa:
-    hibernate:
-      ddl-auto: none
-    show-sql: false
+  data:
+    mongodb:
+      database: book_storage
+      host: localhost
+      port: 27017
+mongock:
+  runner-type: InitializingBean
+  change-logs-scan-package:
+    - ru.otus.book_storage.changelogs
+de:
+  flapp
