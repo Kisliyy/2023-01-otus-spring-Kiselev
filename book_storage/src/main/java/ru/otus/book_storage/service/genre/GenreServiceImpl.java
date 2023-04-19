@@ -20,7 +20,7 @@ public class GenreServiceImpl implements GenreService {
     }
 
     @Override
-    public Genre getById(String id) {
+    public Genre getById(Long id) {
         return genreRepository
                 .findById(id)
                 .orElseThrow(() -> new NotFoundException("Genre not found by id: " + id));

@@ -47,7 +47,7 @@ class AuthorServiceImplTest {
 
     @Test
     void findByIdReturnAuthorTest() {
-        String authorId = "authorId";
+        long authorId = 1;
         Author findAuthor = Author.builder()
                 .id(authorId)
                 .lastName(lastName)
@@ -63,8 +63,8 @@ class AuthorServiceImplTest {
 
     @Test
     void findByFirstNameAndLastNameReturnNullTest() {
-        when(authorRepository.findById(anyString())).thenReturn(Optional.empty());
-        assertThrows(NotFoundException.class, () -> authorService.findById(anyString()));
-        verify(authorRepository, times(1)).findById(anyString());
+        when(authorRepository.findById(anyLong())).thenReturn(Optional.empty());
+        assertThrows(NotFoundException.class, () -> authorService.findById(anyLong()));
+        verify(authorRepository, times(1)).findById(anyLong());
     }
 }

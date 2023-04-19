@@ -24,7 +24,7 @@ class GenreServiceImplTest {
     private GenreService genreService;
 
     private final String textGenre = "novel";
-    private final String genreId = "genre_id";
+    private final long genreId = 2;
 
     @Test
     void getAllGenresTest() {
@@ -55,9 +55,9 @@ class GenreServiceImplTest {
 
     @Test
     void getByGenreReturnNullTest() {
-        when(genreRepository.findById(anyString())).thenReturn(Optional.empty());
-        assertThrows(NotFoundException.class, () -> genreService.getById(anyString()));
-        verify(genreRepository, times(1)).findById(anyString());
+        when(genreRepository.findById(anyLong())).thenReturn(Optional.empty());
+        assertThrows(NotFoundException.class, () -> genreService.getById(anyLong()));
+        verify(genreRepository, times(1)).findById(anyLong());
     }
 
 }

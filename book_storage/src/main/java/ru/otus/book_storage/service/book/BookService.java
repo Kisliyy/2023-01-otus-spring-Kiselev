@@ -1,5 +1,6 @@
 package ru.otus.book_storage.service.book;
 
+import ru.otus.book_storage.dto.UpdateBookDto;
 import ru.otus.book_storage.models.Book;
 
 import java.util.List;
@@ -9,10 +10,9 @@ public interface BookService {
 
     List<Book> getAllBook();
 
-    void deleteById(String id);
+    void deleteById(Long id);
 
-    Book getById(String id);
+    Book getById(Long id);
 
-    void updateBook(Book book);
-
+    void updateBook(UpdateBookDto bookDto);
 }

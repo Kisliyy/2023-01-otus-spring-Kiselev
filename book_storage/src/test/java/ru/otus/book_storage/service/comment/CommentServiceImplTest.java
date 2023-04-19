@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import ru.otus.book_storage.dao.comment.CommentRepository;
+import ru.otus.book_storage.dto.CommentResponseDto;
 import ru.otus.book_storage.dto.CommentUpdateDto;
 import ru.otus.book_storage.exceptions.NotFoundException;
 import ru.otus.book_storage.models.Book;
@@ -19,17 +20,17 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest(classes = CommentServiceImpl.class)
 class CommentServiceImplTest {
-    @MockBean
-    private CommentRepository commentRepository;
 
     @MockBean
     private BookService bookService;
+    @MockBean
+    private CommentRepository commentRepository;
 
     @Autowired
     private CommentService commentService;
 
-    private final String bookId = "bookId";
-    private final String commentId = "commentId";
+    private final long bookId = 23L;
+    private final long commentId = 1L;
     private final String textComment = "textComment";
 
     @Test
@@ -76,9 +77,9 @@ class CommentServiceImplTest {
 
     @Test
     void findByIdReturnNotFoundExceptionTest() {
-        when(commentRepository.findById(anyString())).thenReturn(Optional.empty());
-        assertThrows(NotFoundException.class, () -> commentService.findById(anyString()));
-        verify(commentRepository, times(1)).findById(anyString());
+        when(commentRepository.findById(anyLong())).thenReturn(Optional.empty());
+        assertThrows(NotFoundException.class, () -> commentService.findById(anyLong()));
+        verify(commentRepository, times(1)).findById(anyLong());
     }
 
     @Test
@@ -99,8 +100,12 @@ class CommentServiceImplTest {
                 new Comment(),
                 new Comment()
         );
-        when(commentService.findByBookId(bookId)).thenReturn(commentsByBookId);
-        List<Comment> byBookId = commentService.findByBookId(bookId);
+        Book findBook = Book.builder()
+                .id(bookId)
+                .comments(commentsByBookId)
+                .build();
+        when(bookService.getById(bookId)).thenReturn(findBook);
+        List<CommentResponseDto> byBookId = commentService.findByBookId(bookId);
 
         assertNotNull(byBookId);
         assertFalse(byBookId.isEmpty());
