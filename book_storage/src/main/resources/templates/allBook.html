@@ -3,28 +3,32 @@
 <head>
     <meta charset="UTF-8"/>
     <title>List of all books</title>
-
     <style type="text/css">
         body {
             padding: 50px;
         }
+
         .books {
             border: 1px solid steelblue;
             width: 300px;
             border-collapse: collapse;
         }
+
         .books tr td, th {
             padding: 5px;
             border: 1px solid steelblue;
         }
+
         .books td:last-child, td:first-child {
             width: 200px;
         }
-        h3, .creator{
+
+        h3, .creator {
             font-size: 20px;
             text-align: left;
         }
     </style>
+    <script src="/webjars/jquery/3.6.4/jquery.min.js"></script>
 </head>
 
 <body>
@@ -42,21 +46,33 @@
     </tr>
     </thead>
     <tbody>
-    <tr th:each="book : ${books}" th:object="${book}">
-        <td th:text="*{id}">1</td>
-        <td th:text="*{title}">Book</td>
-        <td th:text="*{genre.name}">Genre</td>
-        <td th:text="*{author.firstName} + ' ' + *{author.lastName}">Book</td>
-        <td>
-            <a th:href="@{/book/edit(id=${book.id})}" href="editBook.html">Edit</a>
-        </td>
-        <td th:text="*{comments.size()}">0</td>
-    </tr>
     </tbody>
 </table>
 
-<a class="creator" href="createBook.html" th:href="@{/book/create}">
+<a class="creator" href="createBook.html" th:href="@{/add}">
     <button type="button">Create Book</button>
 </a>
+
+<script>
+    $(function () {
+        $.get('/books').done(function (books) {
+            books.forEach(function (book) {
+                const fullNameAuthor = book.firstNameAuthor + ' ' + book.lastNameAuthor;
+                $('tbody').append(`
+                    <tr>
+                        <td>${book.id}</td>
+                        <td>${book.title}</td>
+                        <td>${book.genreName}</td>
+                        <td>${fullNameAuthor}</td>
+                        <td>
+                             <a th:href="@{/edit(id=${book.id})}" href="/edit?id=${book.id}">Edit</a>
+                        </td>
+                        <td>${book.countComment}</td>
+                    </tr>
+                `)
+            });
+        })
+    });
+</script>
 </body>
 </html>

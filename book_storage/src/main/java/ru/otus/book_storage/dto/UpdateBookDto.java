@@ -12,6 +12,7 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 @Data
 public class UpdateBookDto {
+    @NotNull(message = "Id cannot be null!")
     private Long id;
     @NotEmpty(message = "The title of the book cannot be empty!")
     @NotNull(message = "The title of the book cannot be null!")

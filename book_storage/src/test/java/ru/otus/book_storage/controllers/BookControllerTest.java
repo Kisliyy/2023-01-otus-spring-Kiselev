@@ -1,24 +1,24 @@
 package ru.otus.book_storage.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import ru.otus.book_storage.dto.CreateBookDto;
 import ru.otus.book_storage.dto.UpdateBookDto;
+import ru.otus.book_storage.exceptions.NotFoundException;
 import ru.otus.book_storage.models.Author;
 import ru.otus.book_storage.models.Book;
 import ru.otus.book_storage.models.Genre;
-import ru.otus.book_storage.service.author.AuthorService;
 import ru.otus.book_storage.service.book.BookService;
-import ru.otus.book_storage.service.genre.GenreService;
 
 import java.util.Collections;
 import java.util.List;
@@ -30,10 +30,6 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 class BookControllerTest {
     @MockBean
     private BookService bookService;
-    @MockBean
-    private AuthorService authorService;
-    @MockBean
-    private GenreService genreService;
 
     @Autowired
     private MockMvc mockMvc;
@@ -65,199 +61,157 @@ class BookControllerTest {
                 .build();
     }
 
-    @Test
-    void allBookVerifyNamePageTest() throws Exception {
-        this.mockMvc
-                .perform(MockMvcRequestBuilders.get("/book/all"))
-                .andDo(MockMvcResultHandlers.print())
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.view().name("allBook"));
-    }
 
     @Test
-    void allBookVerifyContainsBookTest() throws Exception {
-
-        when(bookService.getAllBook())
-                .thenReturn(List.of(book));
+    void shouldReturnCorrectListBookDto() throws Exception {
+        List<Book> bookList = List.of(book);
+        when(bookService.getAllBook()).thenReturn(bookList);
 
         this.mockMvc
-                .perform(MockMvcRequestBuilders.get("/book/all"))
-                .andDo(MockMvcResultHandlers.print())
+                .perform(MockMvcRequestBuilders.get("/books")
+                        .contentType(MediaType.ALL))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().string(Matchers.containsString(title)))
-                .andExpect(MockMvcResultMatchers.content().string(Matchers.containsString(String.valueOf(bookId))))
-                .andExpect(MockMvcResultMatchers.content().string(Matchers.containsString(genreName)))
-                .andExpect(MockMvcResultMatchers.content().string(Matchers.containsString(firstName)))
-                .andExpect(MockMvcResultMatchers.content().string(Matchers.containsString(lastName)))
-                .andReturn();
+                .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.length()", Matchers.is(bookList.size())))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].title", Matchers.is(title)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].genreName", Matchers.is(genreName)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].firstNameAuthor", Matchers.is(firstName)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].lastNameAuthor", Matchers.is(lastName)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].countComment", Matchers.is(0)));
+
 
         verify(bookService, times(1)).getAllBook();
     }
 
     @Test
-    void editBookContainsTest() throws Exception {
-        long pushkinId = 123;
-        String aleks = "Aleks";
-        String pushkin = "pushkin";
-        Author pushkinAuthor = new Author(pushkinId, aleks, pushkin);
-
-        long genreAbstractId = 12354;
-        String genreAbstractName = "genreAbstractName";
-        Genre genreAbstract = new Genre(genreAbstractId, genreAbstractName);
-
-        when(bookService.getById(bookId))
-                .thenReturn(book);
-        when(genreService.getAll())
-                .thenReturn(List.of(genre, genreAbstract));
-        when(authorService.getAll())
-                .thenReturn(List.of(author, pushkinAuthor));
-
-
+    void shouldReturnFindBookDto() throws Exception {
+        when(bookService.getById(bookId)).thenReturn(book);
+        final String url = "/books/" + bookId;
         this.mockMvc
-                .perform(MockMvcRequestBuilders.get("/book/edit").param("id", String.valueOf(bookId)))
-                .andDo(MockMvcResultHandlers.print())
+                .perform(MockMvcRequestBuilders.get(url)
+                        .contentType(MediaType.ALL))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.view().name("editBook"));
-    }
-
-    @Test
-    void editBookVerifyContainsBookAndAllGenresAndAllAuthorsTest() throws Exception {
-        long pushkinId = 123;
-        String aleks = "Aleks";
-        String pushkin = "pushkin";
-        Author pushkinAuthor = new Author(pushkinId, aleks, pushkin);
-
-        long genreAbstractId = 12354;
-        String genreAbstractName = "genreAbstractName";
-        Genre genreAbstract = new Genre(genreAbstractId, genreAbstractName);
-
-        when(bookService.getById(bookId))
-                .thenReturn(book);
-        when(genreService.getAll())
-                .thenReturn(List.of(genre, genreAbstract));
-        when(authorService.getAll())
-                .thenReturn(List.of(author, pushkinAuthor));
-
-
-        this.mockMvc
-                .perform(MockMvcRequestBuilders.get("/book/edit").param("id", String.valueOf(bookId)))
-                .andDo(MockMvcResultHandlers.print())
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().string(Matchers.containsString(title)))
-                .andExpect(MockMvcResultMatchers.content().string(Matchers.containsString(String.valueOf(bookId))))
-                .andExpect(MockMvcResultMatchers.xpath("//*[@name='genreId']/option").nodeCount(2))
-                .andExpect(MockMvcResultMatchers.xpath("//*[@name='authorId']/option").nodeCount(2))
-                .andReturn();
+                .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.title", Matchers.is(title)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.genreName", Matchers.is(genreName)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.firstNameAuthor", Matchers.is(firstName)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.lastNameAuthor", Matchers.is(lastName)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.countComment", Matchers.is(0)));
 
         verify(bookService, times(1)).getById(bookId);
-        verify(genreService, times(1)).getAll();
-        verify(authorService, times(1)).getAll();
     }
 
     @Test
-    void saveBookSuccessfulTest() throws Exception {
+    void shouldReturnNotFoundByFoundBookException() throws Exception {
+        String message = "Book not found!";
+        when(bookService.getById(any())).thenThrow(new NotFoundException(message));
+
+        final String url = "/books/" + bookId;
+        this.mockMvc
+                .perform(MockMvcRequestBuilders.get(url)
+                        .contentType(MediaType.ALL))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.message", Matchers.is(message)));
+
+        verify(bookService, times(1)).getById(any());
+    }
+
+    @Test
+    void shouldAddNewBookTest() throws Exception {
         CreateBookDto createBookDto = new CreateBookDto(title, authorId, genreId);
-        Book domainObject = createBookDto.toDomainObject();
-        when(bookService.save(domainObject)).thenReturn(book);
-        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
-                .post("/book/save")
-                .param("title", title)
-                .param("authorId", String.valueOf(authorId))
-                .param("genreId", String.valueOf(genreId));
+        Book toDomainObject = createBookDto.toDomainObject();
+        when(bookService.save(toDomainObject)).thenReturn(book);
 
         this.mockMvc
-                .perform(request)
-                .andDo(MockMvcResultHandlers.print())
-                .andExpect(MockMvcResultMatchers.status().is3xxRedirection())
-                .andExpect(MockMvcResultMatchers.view().name("redirect:/book/all"))
-                .andReturn();
-
-        verify(bookService, times(1)).save(domainObject);
-    }
-
-    @Test
-    void createBookVerifyNamePageTest() throws Exception {
-        this.mockMvc
-                .perform(MockMvcRequestBuilders.get("/book/create"))
-                .andDo(MockMvcResultHandlers.print())
+                .perform(
+                        MockMvcRequestBuilders.post("/books")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectToJson(createBookDto))
+                )
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.view().name("createBook"));
+                .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.title", Matchers.is(title)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.genreName", Matchers.is(genreName)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.firstNameAuthor", Matchers.is(firstName)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.lastNameAuthor", Matchers.is(lastName)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.countComment", Matchers.is(0)));
+
+        verify(bookService, times(1)).save(toDomainObject);
     }
 
     @Test
-    void createBookVerifyContainsBookAndAllGenresAndAllAuthorsTest() throws Exception {
-        long pushkinId = 123;
-        String aleks = "Aleks";
-        String pushkin = "pushkin";
-        Author pushkinAuthor = new Author(pushkinId, aleks, pushkin);
+    void shouldReturnExceptionByAddNewBookTest() throws Exception {
+        CreateBookDto createBookDto = new CreateBookDto(null, authorId, genreId);
+        this.mockMvc
+                .perform(
+                        MockMvcRequestBuilders.post("/books")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectToJson(createBookDto))
+                )
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.title", Matchers.anyOf(
+                                Matchers.is("The title of the book cannot be null"),
+                                Matchers.is("The title of the book cannot be empty")
+                        )
+                ));
+    }
 
-        long genreAbstractId = 12354;
-        String genreAbstractName = "genreAbstractName";
-        Genre genreAbstract = new Genre(genreAbstractId, genreAbstractName);
-
-        when(genreService.getAll())
-                .thenReturn(List.of(genre, genreAbstract));
-        when(authorService.getAll())
-                .thenReturn(List.of(author, pushkinAuthor));
-
+    @Test
+    void shouldDeleteBookTest() throws Exception {
+        doNothing()
+                .when(bookService)
+                .deleteById(bookId);
 
         this.mockMvc
-                .perform(MockMvcRequestBuilders.get("/book/create").param("id", String.valueOf(bookId)))
-                .andDo(MockMvcResultHandlers.print())
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().string(Matchers.containsString(title)))
-                .andExpect(MockMvcResultMatchers.content().string(Matchers.containsString(String.valueOf(bookId))))
-                .andExpect(MockMvcResultMatchers.xpath("//*[@name='genreId']/option").nodeCount(2))
-                .andExpect(MockMvcResultMatchers.xpath("//*[@name='authorId']/option").nodeCount(2))
-                .andReturn();
-
-        verify(genreService, times(1)).getAll();
-        verify(authorService, times(1)).getAll();
+                .perform(MockMvcRequestBuilders.delete("/books")
+                        .param("id", String.valueOf(bookId)))
+                .andExpect(MockMvcResultMatchers.status().isOk());
     }
 
     @Test
-    void updateBookSuccessfulTest() throws Exception {
-        UpdateBookDto updateBookDto = new UpdateBookDto(bookId, title, authorId, genreId);
+    void shouldUpdateBookTest() throws Exception {
+        String newTitle = "newTitle";
+        UpdateBookDto updateBookDto = new UpdateBookDto(bookId, newTitle, authorId, genreId);
+
         doNothing()
                 .when(bookService)
                 .updateBook(updateBookDto);
 
-        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
-                .post("/book/update")
-                .param("id", String.valueOf(bookId))
-                .param("title", title)
-                .param("authorId", String.valueOf(authorId))
-                .param("genreId", String.valueOf(genreId));
-
         this.mockMvc
-                .perform(request)
-                .andDo(MockMvcResultHandlers.print())
-                .andExpect(MockMvcResultMatchers.status().is3xxRedirection())
-                .andExpect(MockMvcResultMatchers.view().name("redirect:/book/all"))
-                .andReturn();
+                .perform(
+                        MockMvcRequestBuilders.put("/books")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectToJson(updateBookDto))
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk());
 
         verify(bookService, times(1)).updateBook(updateBookDto);
     }
 
     @Test
-    void deleteBookSuccessfulTest() throws Exception {
-
-        doNothing()
-                .when(bookService)
-                .deleteById(bookId);
-
-        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
-                .post("/book/delete")
-                .param("id", String.valueOf(bookId));
-
+    void shouldReturnExceptionByUpdateBookTest() throws Exception {
+        UpdateBookDto updateBookDto = new UpdateBookDto(null, null, authorId, genreId);
         this.mockMvc
-                .perform(request)
-                .andDo(MockMvcResultHandlers.print())
-                .andExpect(MockMvcResultMatchers.status().is3xxRedirection())
-                .andExpect(MockMvcResultMatchers.view().name("redirect:/book/all"))
-                .andReturn();
+                .perform(
+                        MockMvcRequestBuilders.put("/books")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectToJson(updateBookDto))
+                )
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.id", Matchers.is("Id cannot be null!")))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.title", Matchers.anyOf(
+                                Matchers.is("The title of the book cannot be empty!"),
+                                Matchers.is("The title of the book cannot be null!")
+                        )
+                ));
+    }
 
-        verify(bookService, times(1)).deleteById(bookId);
+    private String objectToJson(Object object) throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.writeValueAsString(object);
     }
 
 }

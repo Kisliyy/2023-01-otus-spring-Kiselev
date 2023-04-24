@@ -20,66 +20,98 @@
         .row {
             margin-top: 10px;
         }
-
-        .errors {
-            color: red;
-        }
     </style>
+    <script src="/webjars/jquery/3.6.4/jquery.min.js"></script>
+    <script>
+        function saveBook() {
+            const bookId = document.getElementById("bookId").value
+            const titleInput = document.getElementById("title").value
+            const genreInput = $("#genreId option:selected").attr("id")
+            const authorInput = $("#authorId option:selected").attr("id")
+            const book = {
+                id: Number(bookId),
+                title: String(titleInput),
+                authorId: Number(authorInput),
+                genreId: Number(genreInput)
+            }
+            fetch("/books", {
+                method: 'PUT',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(book)
+            })
+                .then(() => window.location.href = '/')
+
+        }
+
+        function deleteBook() {
+            const bookId = document.getElementById("bookId").value
+            const url = "/books" + "?id=" + bookId
+            fetch(url, {
+                method: 'DELETE'
+            })
+                .then(() => window.location.href = '/')
+        }
+    </script>
 </head>
 <body>
 
-<form id="edit-form" action="editBook.html" th:action="@{/book/update(id=${book.id})}" th:method="POST" th:object="${book}">
+<form id="edit-form" action="editBook.html" th:action="@{/edit(id=${bookId})}" th:method="PUT">
+
+    <div class="row">
+        <input id="bookId" hidden name="bookId" type="text" readonly="readonly" th:value="${bookId}" value="1"/>
+    </div>
+
     <h3>Book Info:</h3>
-
-    <div class="row">
-        <label for="id-input">Id:</label>
-        <input id="id-input" name="id" type="text" readonly="readonly" th:value="*{id}" value="1"/>
-        <div class="errors" th:if="${#fields.hasErrors('id')}" th:errors="*{id}">Wrong book id error</div>
-    </div>
-
-    <div class="row">
-        <label for="book-title-input">Title:</label>
-        <input id="book-title-input" name="title" type="text" th:value="*{title}" value="Title Book"/>
-        <div class="errors" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Wrong book title error</div>
-    </div>
-
-    <div class="row">
-        <label>Genre:</label>
-        <select id="genreId" name="genreId" class="form-control">
-            <option th:each="genre: ${genres}"
-                    th:text="${genre.name}"
-                    th:attr="name='genreId'"
-                    th:selected="(${genre.id} == *{genre.id})"
-                    th:value="${genre.id}">
-            </option>
-        </select>
-    </div>
-
-    <div class="row">
-        <label>Author:</label>
-        <select id="authorId" name="authorId" class="form-control">
-            <option th:each="author: ${authors}"
-                    th:text="${author.firstName} + ' ' + ${author.lastName}"
-                    th:attr="name='authorId'"
-                    th:selected="(${author.id} == *{author.id})"
-                    th:value="${author.id}">
-            </option>
-        </select>
-    </div>
-
-    <div class="row">
-        <button type="submit">Save</button>
-        <a href="allBook.html" th:href="@{/book/all}">
-            <button type="button">Cancel</button>
-        </a>
-    </div>
+    <p th:name="bookId" th:value="${bookId}"></p>
+    <div th:insert="~{formData::copy}"></div>
 </form>
 
-<form th:action="@{/book/delete(id=${book.id})}" th:object="${book}" th:method="post">
-    <div class="row">
-        <button type="submit" onClick="return confirm('Are your sure?')">Delete</button>
-    </div>
-</form>
 
+<div class="row">
+    <button type="submit"  onclick="deleteBook()">Delete</button>
+</div>
+
+
+<script>
+    $(function () {
+        $.get('/genres').done(function (genres) {
+            genres.forEach(function (genre) {
+                const genreId = genre.id;
+                const genreName = genre.name;
+                $('#genreId')
+                    .prepend(`<option id="${genreId}">${genreName}</option>`);
+            });
+        })
+    });
+    $(function () {
+        $.get('/authors').done(function (authors) {
+            authors.forEach(
+                function (author) {
+                    const fullName = author.firstName + ' ' + author.lastName;
+                    $('#authorId')
+                        .prepend(`<option id="${author.id}">${fullName}</option>`);
+                });
+        })
+    });
+    $(function () {
+        const bookId = document.getElementById("bookId").value
+        const url = "/books/" + bookId;
+        $.get(url).done(
+            function (book) {
+                const currentTitle = document.getElementById("title").value
+                $('#title').val(function (index, value) {
+                    return value.replace(currentTitle, book.title);
+                })
+                const bookGenre = book.genreName
+                $('#genreId option:contains('+ bookGenre +')').prop('selected', true);
+                const fullNameAuthor = book.firstNameAuthor + ' ' + book.lastNameAuthor;
+                $('#authorId option:contains(' + fullNameAuthor +')').prop('selected', true);
+            }
+        )
+    });
+</script>
 </body>
 </html>
