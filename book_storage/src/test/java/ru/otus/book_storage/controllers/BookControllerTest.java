@@ -33,9 +33,6 @@ class BookControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    private Author author;
-    private Genre genre;
     private Book book;
 
     final long authorId = 1000;
@@ -50,8 +47,8 @@ class BookControllerTest {
 
     @BeforeEach
     void init() {
-        this.author = new Author(authorId, firstName, lastName);
-        this.genre = new Genre(genreId, genreName);
+        Author author = new Author(authorId, firstName, lastName);
+        Genre genre = new Genre(genreId, genreName);
         this.book = Book.builder()
                 .id(bookId)
                 .title(title)
