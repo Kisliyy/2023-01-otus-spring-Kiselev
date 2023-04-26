@@ -16,55 +16,64 @@
         input:read-only {
             background: lightgray;
         }
-
         .row {
             margin-top: 10px;
         }
 
-        .errors {
-            color: red;
-        }
     </style>
+    <script src="/webjars/jquery/3.6.4/jquery.min.js"></script>
+    <script>
+        function saveBook() {
+            const titleInput = document.getElementById("title").value
+            const genreInput = $("#genreId option:selected").attr("id")
+            const authorInput = $("#authorId option:selected").attr("id")
+            const book = {
+                title: String(titleInput),
+                authorId: Number(authorInput),
+                genreId: Number(genreInput)
+            }
+            fetch("/books", {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(book)
+            })
+                .then(() => window.location.href = '/')
+
+        }
+    </script>
 </head>
 <body>
 
-<form id="save-form" action="createBook.html" th:action="@{/book/save}" th:method="POST" th:object="${book}">
+<form id="save-form" action="createBook.html" th:method="POST">
     <h3>Create Book:</h3>
-
-    <div class="row">
-        <label for="title">Title:</label>
-        <input id="title" th:field="*{title}" type="text" value="Title book"/>
-        <div class="errors" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Wrong book title error</div>
-    </div>
-
-    <div class="row">
-        <label>Genre:</label>
-        <select id="genreId" name="genreId" class="form-control">
-            <option th:each="genre: ${genres}"
-                    th:text="${genre.name}"
-                    th:attr="name='genreId'"
-                    th:value="${genre.id}">
-            </option>
-        </select>
-    </div>
-
-    <div class="row">
-        <label>Author:</label>
-        <select id="authorId" name="authorId" class="form-control">
-            <option th:each="author: ${authors}"
-                    th:text="${author.firstName} + ' ' + ${author.lastName}"
-                    th:attr="name='authorId'"
-                    th:value="${author.id}">
-            </option>
-        </select>
-    </div>
-
-    <div class="row">
-        <button type="submit">Save</button>
-        <a href="allBook.html" th:href="@{/book/all}">
-            <button type="button">Cancel</button>
-        </a>
-    </div>
+    <div th:insert="~{formData::copy}"></div>
 </form>
+
+
+<script>
+    $(function () {
+        $.get('/genres').done(function (genres) {
+            genres.forEach(function (genre) {
+                const genreId = genre.id;
+                const genreName = genre.name;
+                $('#genreId')
+                    .prepend(`<option id="${genreId}">${genreName}</option>`);
+            });
+        })
+    });
+    $(function () {
+        $.get('/authors').done(function (authors) {
+            authors.forEach(
+                function (author) {
+                    const fullName = author.firstName + ' ' + author.lastName;
+                    $('#authorId')
+                        .prepend(`<option id="${author.id}">${fullName}</option>`);
+                });
+        })
+    });
+</script>
 </body>
 </html>
