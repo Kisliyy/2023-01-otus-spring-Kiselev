@@ -2,45 +2,54 @@ package ru.otus.book_storage.controllers;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.util.UriComponentsBuilder;
 
-@WebMvcTest(value = PageController.class)
+import java.net.URI;
+
+@WebFluxTest(controllers = PageController.class)
 class PageControllerTest {
 
     @Autowired
-    private MockMvc mockMvc;
+    private WebTestClient webTestClient;
 
     @Test
-    void allBookVerifyNamePageTest() throws Exception {
-        this.mockMvc
-                .perform(MockMvcRequestBuilders.get("/"))
-                .andDo(MockMvcResultHandlers.print())
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.view().name("allBook"));
+    void allBookVerifyTitlePageTest() {
+        webTestClient.get()
+                .uri("/")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.TEXT_HTML)
+                .expectBody().xpath("//head/title/text()", "List of all books").exists();
     }
 
 
     @Test
-    void createBookVerifyNamePageTest() throws Exception {
-        this.mockMvc
-                .perform(MockMvcRequestBuilders.get("/add"))
-                .andDo(MockMvcResultHandlers.print())
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.view().name("createBook"));
+    void createBookVerifyTitlePageTest() {
+        webTestClient.get()
+                .uri("/add")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.TEXT_HTML)
+                .expectBody().xpath("//head/title/text()", "Create book").exists();
     }
 
     @Test
-    void editBookVerifyNamePageTest() throws Exception {
-        long bookId = 123;
+    void editBookVerifyTitlePageTest() {
+        String bookId = "123";
+        URI uri = UriComponentsBuilder
+                .fromPath("/edit")
+                .queryParam("id", bookId)
+                .build()
+                .toUri();
 
-        this.mockMvc
-                .perform(MockMvcRequestBuilders.get("/edit").param("id", String.valueOf(bookId)))
-                .andDo(MockMvcResultHandlers.print())
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.view().name("editBook"));
+        webTestClient.get()
+                .uri(uri)
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.TEXT_HTML)
+                .expectBody().xpath("//head/title/text()", "Edit book").exists();
     }
 }

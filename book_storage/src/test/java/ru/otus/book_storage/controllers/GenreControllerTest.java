@@ -1,49 +1,51 @@
 package ru.otus.book_storage.controllers;
 
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.test.web.reactive.server.WebTestClient;
+import reactor.core.publisher.Flux;
+import ru.otus.book_storage.dao.genre.GenreRepository;
+import ru.otus.book_storage.dto.GenreResponseDto;
 import ru.otus.book_storage.models.Genre;
-import ru.otus.book_storage.service.genre.GenreService;
 
 import java.util.List;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
 
-@WebMvcTest(value = GenreController.class)
+@WebFluxTest(controllers = GenreController.class)
 class GenreControllerTest {
 
     @MockBean
-    private GenreService genreService;
+    private GenreRepository genreRepository;
 
     @Autowired
-    private MockMvc mockMvc;
+    private WebTestClient webTestClient;
 
 
     @Test
-    void shouldReturnCorrectListGenresDto() throws Exception {
-        final Long genreId = 1000L;
+    void shouldReturnFluxGenresDto() {
+        final String genreId = "1000L";
         final String genreName = "genreName";
         Genre genre = new Genre(genreId, genreName);
+        GenreResponseDto genreResponseDto = new GenreResponseDto(genre);
         List<Genre> genreList = List.of(genre);
 
-        when(genreService.getAll()).thenReturn(genreList);
 
-        mockMvc
-                .perform(
-                        MockMvcRequestBuilders.get("/genres")
-                                .contentType(MediaType.ALL))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.length()", Matchers.is(genreList.size())))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].name", Matchers.is(genreName)));
+        when(genreRepository.findAll()).thenReturn(Flux.fromIterable(genreList));
 
-        verify(genreService, times(1)).getAll();
+        webTestClient.get()
+                .uri("/genres")
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBodyList(GenreResponseDto.class)
+                .hasSize(1)
+                .contains(genreResponseDto);
+
+        Mockito.verify(genreRepository, times(1)).findAll();
     }
 }

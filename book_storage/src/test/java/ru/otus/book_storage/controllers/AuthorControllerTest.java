@@ -1,51 +1,51 @@
 package ru.otus.book_storage.controllers;
 
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.test.web.reactive.server.WebTestClient;
+import reactor.core.publisher.Flux;
+import ru.otus.book_storage.dao.author.AuthorRepository;
+import ru.otus.book_storage.dto.AuthorResponseDto;
 import ru.otus.book_storage.models.Author;
-import ru.otus.book_storage.service.author.AuthorService;
 
 import java.util.List;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
 
-@WebMvcTest(value = AuthorController.class)
+@WebFluxTest(controllers = AuthorController.class)
 class AuthorControllerTest {
 
     @MockBean
-    private AuthorService authorService;
+    private AuthorRepository authorRepository;
 
     @Autowired
-    private MockMvc mockMvc;
+    private WebTestClient webTestClient;
 
 
     @Test
-    void shouldReturnCorrectListAuthorsDto() throws Exception {
-        final Long authorId = 1000L;
+    void shouldReturnFluxAuthorsDto() {
+        final String authorId = "1000L";
         final String firstName = "firstName";
         final String lastName = "lastName";
         Author author = new Author(authorId, firstName, lastName);
+        AuthorResponseDto authorResponseDto = new AuthorResponseDto(author);
         List<Author> authorList = List.of(author);
 
-        when(authorService.getAll()).thenReturn(authorList);
+        when(authorRepository.findAll()).thenReturn(Flux.fromIterable(authorList));
 
-        mockMvc
-                .perform(
-                        MockMvcRequestBuilders.get("/authors")
-                                .contentType(MediaType.ALL))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.length()", Matchers.is(authorList.size())))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].firstName", Matchers.is(firstName)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].lastName", Matchers.is(lastName)));
+        webTestClient.get()
+                .uri("/authors")
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBodyList(AuthorResponseDto.class)
+                .hasSize(1)
+                .contains(authorResponseDto);
 
-        verify(authorService, times(1)).getAll();
+        Mockito.verify(authorRepository, times(1)).findAll();
     }
 }
