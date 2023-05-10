@@ -1,43 +1,60 @@
 package ru.otus.book_storage.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.util.UriComponentsBuilder;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import ru.otus.book_storage.dao.author.AuthorRepository;
+import ru.otus.book_storage.dao.book.BookRepository;
+import ru.otus.book_storage.dao.comment.CommentRepository;
+import ru.otus.book_storage.dao.genre.GenreRepository;
+import ru.otus.book_storage.dto.BookResponseDto;
 import ru.otus.book_storage.dto.CreateBookDto;
 import ru.otus.book_storage.dto.UpdateBookDto;
-import ru.otus.book_storage.exceptions.NotFoundException;
 import ru.otus.book_storage.models.Author;
 import ru.otus.book_storage.models.Book;
 import ru.otus.book_storage.models.Genre;
-import ru.otus.book_storage.service.book.BookService;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
-@WebMvcTest(value = BookController.class)
+@WebFluxTest(controllers = BookController.class)
 class BookControllerTest {
-    @MockBean
-    private BookService bookService;
+
 
     @Autowired
-    private MockMvc mockMvc;
+    private WebTestClient webTestClient;
+
+    @MockBean
+    private BookRepository bookRepository;
+
+    @MockBean
+    private AuthorRepository authorRepository;
+
+    @MockBean
+    private GenreRepository genreRepository;
+
+    @MockBean
+    private CommentRepository commentRepository;
+
     private Book book;
 
-    final long authorId = 1000;
-    final long genreId = 1000;
-    final long bookId = 1000;
+    private Author author;
+
+    private Genre genre;
+
+    final String authorId = "1000";
+    final String genreId = "1000";
+    final String bookId = "1000";
 
     private final String title = "title";
     private final String genreName = "genreName";
@@ -47,168 +64,187 @@ class BookControllerTest {
 
     @BeforeEach
     void init() {
-        Author author = new Author(authorId, firstName, lastName);
-        Genre genre = new Genre(genreId, genreName);
+        this.author = new Author(authorId, firstName, lastName);
+        this.genre = new Genre(genreId, genreName);
         this.book = Book.builder()
                 .id(bookId)
                 .title(title)
                 .author(author)
                 .genre(genre)
-                .comments(Collections.emptyList())
+                .comments(Collections.emptySet())
                 .build();
     }
 
 
     @Test
-    void shouldReturnCorrectListBookDto() throws Exception {
+    void shouldReturnCorrectListBookDto() {
+        BookResponseDto bookResponseDto = new BookResponseDto(book);
         List<Book> bookList = List.of(book);
-        when(bookService.getAllBook()).thenReturn(bookList);
+        when(bookRepository.findAll()).thenReturn(Flux.fromIterable(bookList));
 
-        this.mockMvc
-                .perform(MockMvcRequestBuilders.get("/books")
-                        .contentType(MediaType.ALL))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.length()", Matchers.is(bookList.size())))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].title", Matchers.is(title)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].genreName", Matchers.is(genreName)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].firstNameAuthor", Matchers.is(firstName)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].lastNameAuthor", Matchers.is(lastName)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].countComment", Matchers.is(0)));
+        webTestClient
+                .get()
+                .uri("/books")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBodyList(BookResponseDto.class)
+                .hasSize(1)
+                .contains(bookResponseDto);
 
-
-        verify(bookService, times(1)).getAllBook();
+        verify(bookRepository, times(1)).findAll();
     }
 
     @Test
-    void shouldReturnFindBookDto() throws Exception {
-        when(bookService.getById(bookId)).thenReturn(book);
+    void shouldReturnFindBookDto() {
+        when(bookRepository.findById(bookId)).thenReturn(Mono.just(book));
         final String url = "/books/" + bookId;
-        this.mockMvc
-                .perform(MockMvcRequestBuilders.get(url)
-                        .contentType(MediaType.ALL))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.title", Matchers.is(title)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.genreName", Matchers.is(genreName)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.firstNameAuthor", Matchers.is(firstName)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.lastNameAuthor", Matchers.is(lastName)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.countComment", Matchers.is(0)));
+        webTestClient.get()
+                .uri(url)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody().jsonPath("$.title", title).hasJsonPath()
+                .jsonPath("$.genreName", genreName).hasJsonPath()
+                .jsonPath("$.firstNameAuthor", firstName).hasJsonPath()
+                .jsonPath("$.lastNameAuthor", lastName).hasJsonPath()
+                .jsonPath("$.countComment", 0).hasJsonPath();
 
-        verify(bookService, times(1)).getById(bookId);
+        verify(bookRepository, times(1)).findById(bookId);
     }
 
     @Test
-    void shouldReturnNotFoundByFoundBookException() throws Exception {
-        String message = "Book not found!";
-        when(bookService.getById(any())).thenThrow(new NotFoundException(message));
+    void shouldReturnNotFoundByFoundBookException() {
+        String message = "Book not found by id: " + bookId;
+        when(bookRepository.findById(anyString())).thenReturn(Mono.empty());
 
         final String url = "/books/" + bookId;
-        this.mockMvc
-                .perform(MockMvcRequestBuilders.get(url)
-                        .contentType(MediaType.ALL))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message", Matchers.is(message)));
 
-        verify(bookService, times(1)).getById(any());
+        webTestClient.get()
+                .uri(url)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody().jsonPath("$.message", message).hasJsonPath();
+
+        verify(bookRepository, times(1)).findById(anyString());
     }
 
     @Test
-    void shouldAddNewBookTest() throws Exception {
+    void shouldAddNewBookTest() {
+        var saveBookId = "saveBookId";
+
         CreateBookDto createBookDto = new CreateBookDto(title, authorId, genreId);
-        Book toDomainObject = createBookDto.toDomainObject();
-        when(bookService.save(toDomainObject)).thenReturn(book);
 
-        this.mockMvc
-                .perform(
-                        MockMvcRequestBuilders.post("/books")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectToJson(createBookDto))
-                )
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.title", Matchers.is(title)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.genreName", Matchers.is(genreName)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.firstNameAuthor", Matchers.is(firstName)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.lastNameAuthor", Matchers.is(lastName)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.countComment", Matchers.is(0)));
 
-        verify(bookService, times(1)).save(toDomainObject);
+        Book saveBook = Book.builder()
+                .author(author)
+                .genre(genre)
+                .title(title)
+                .build();
+
+        Book persistBook = Book.builder()
+                .id(saveBookId)
+                .author(author)
+                .genre(genre)
+                .title(title)
+                .build();
+
+        when(authorRepository.findById(authorId)).thenReturn(Mono.just(author));
+        when(genreRepository.findById(genreId)).thenReturn(Mono.just(genre));
+        when(bookRepository.save(saveBook)).thenReturn(Mono.just(persistBook));
+
+        webTestClient
+                .post()
+                .uri("/books")
+                .bodyValue(createBookDto)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody().jsonPath("$.title", title).hasJsonPath()
+                .jsonPath("$.genreName", genreName).hasJsonPath()
+                .jsonPath("$.firstNameAuthor", firstName).hasJsonPath()
+                .jsonPath("$.lastNameAuthor", lastName).hasJsonPath()
+                .jsonPath("$.countComment", 0).hasJsonPath();
+
+        verify(authorRepository, times(1)).findById(authorId);
+        verify(genreRepository, times(1)).findById(genreId);
+        verify(bookRepository, times(1)).save(saveBook);
     }
 
     @Test
-    void shouldReturnExceptionByAddNewBookTest() throws Exception {
+    void shouldReturnExceptionByAddNewBookTest() {
         CreateBookDto createBookDto = new CreateBookDto(null, authorId, genreId);
-        this.mockMvc
-                .perform(
-                        MockMvcRequestBuilders.post("/books")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectToJson(createBookDto))
-                )
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.title", Matchers.anyOf(
-                                Matchers.is("The title of the book cannot be null"),
-                                Matchers.is("The title of the book cannot be empty")
-                        )
-                ));
+
+        webTestClient.post()
+                .uri("/books")
+                .bodyValue(createBookDto)
+                .exchange()
+                .expectStatus().isBadRequest();
     }
 
     @Test
-    void shouldDeleteBookTest() throws Exception {
-        doNothing()
-                .when(bookService)
-                .deleteById(bookId);
+    void shouldDeleteBookTest() {
 
-        this.mockMvc
-                .perform(MockMvcRequestBuilders.delete("/books")
-                        .param("id", String.valueOf(bookId)))
-                .andExpect(MockMvcResultMatchers.status().isOk());
+        when(bookRepository.findById(bookId)).thenReturn(Mono.just(book));
+        when(commentRepository.deleteAll(book.getComments())).thenReturn(Mono.empty());
+        when(bookRepository.delete(book)).thenReturn(Mono.empty());
+
+        URI uri = UriComponentsBuilder
+                .fromPath("/books")
+                .queryParam("id", bookId)
+                .build()
+                .toUri();
+
+        webTestClient.delete()
+                .uri(uri)
+                .exchange()
+                .expectStatus().isOk();
+
+        verify(bookRepository, times(1)).findById(authorId);
+        verify(commentRepository, times(1)).deleteAll(book.getComments());
+        verify(bookRepository, times(1)).delete(book);
     }
 
     @Test
-    void shouldUpdateBookTest() throws Exception {
+    void shouldUpdateBookTest() {
         String newTitle = "newTitle";
         UpdateBookDto updateBookDto = new UpdateBookDto(bookId, newTitle, authorId, genreId);
 
-        doNothing()
-                .when(bookService)
-                .updateBook(updateBookDto);
+        Book updateBook = Book.builder()
+                .id(bookId)
+                .title(newTitle)
+                .author(author)
+                .genre(genre)
+                .comments(Collections.emptySet())
+                .build();
 
-        this.mockMvc
-                .perform(
-                        MockMvcRequestBuilders.put("/books")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectToJson(updateBookDto))
-                )
-                .andExpect(MockMvcResultMatchers.status().isOk());
+        when(authorRepository.findById(authorId)).thenReturn(Mono.just(author));
+        when(genreRepository.findById(genreId)).thenReturn(Mono.just(genre));
+        when(bookRepository.findById(bookId)).thenReturn(Mono.just(book));
+        when(bookRepository.save(updateBook)).thenReturn(Mono.just(updateBook));
 
-        verify(bookService, times(1)).updateBook(updateBookDto);
+        webTestClient.put()
+                .uri("/books")
+                .bodyValue(updateBookDto)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody().jsonPath("$.title", newTitle).hasJsonPath()
+                .jsonPath("$.genreName", genreName).hasJsonPath()
+                .jsonPath("$.firstNameAuthor", firstName).hasJsonPath()
+                .jsonPath("$.lastNameAuthor", lastName).hasJsonPath()
+                .jsonPath("$.countComment", 0).hasJsonPath();
+
+        verify(bookRepository, times(1)).findById(bookId);
+        verify(authorRepository, times(1)).findById(authorId);
+        verify(genreRepository, times(1)).findById(genreId);
+        verify(bookRepository, times(1)).save(updateBook);
     }
 
     @Test
-    void shouldReturnExceptionByUpdateBookTest() throws Exception {
+    void shouldReturnExceptionByUpdateBookTest() {
         UpdateBookDto updateBookDto = new UpdateBookDto(null, null, authorId, genreId);
-        this.mockMvc
-                .perform(
-                        MockMvcRequestBuilders.put("/books")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectToJson(updateBookDto))
-                )
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.id", Matchers.is("Id cannot be null!")))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.title", Matchers.anyOf(
-                                Matchers.is("The title of the book cannot be empty!"),
-                                Matchers.is("The title of the book cannot be null!")
-                        )
-                ));
-    }
 
-    private String objectToJson(Object object) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.writeValueAsString(object);
+        webTestClient.put()
+                .uri("/books")
+                .bodyValue(updateBookDto)
+                .exchange()
+                .expectStatus().isBadRequest();
     }
-
 }

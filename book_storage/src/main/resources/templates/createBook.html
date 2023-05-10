@@ -29,8 +29,8 @@
             const authorInput = $("#authorId option:selected").attr("id")
             const book = {
                 title: String(titleInput),
-                authorId: Number(authorInput),
-                genreId: Number(genreInput)
+                authorId: String(authorInput),
+                genreId: String(genreInput)
             }
             fetch("/books", {
                 method: 'POST',

@@ -1,29 +1,22 @@
 package ru.otus.book_storage.controllers;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Flux;
+import ru.otus.book_storage.dao.author.AuthorRepository;
 import ru.otus.book_storage.dto.AuthorResponseDto;
-import ru.otus.book_storage.service.author.AuthorService;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
 public class AuthorController {
 
-    private final AuthorService authorService;
+    private final AuthorRepository authorRepository;
 
     @GetMapping(value = "/authors")
-    public ResponseEntity<List<AuthorResponseDto>> getAllAuthors() {
-        List<AuthorResponseDto> response = authorService
-                .getAll()
-                .stream()
-                .map(AuthorResponseDto::new)
-                .collect(Collectors.toList());
-        return ResponseEntity
-                .ok(response);
+    public Flux<AuthorResponseDto> getAllAuthors() {
+        return authorRepository
+                .findAll()
+                .map(AuthorResponseDto::new);
     }
 }

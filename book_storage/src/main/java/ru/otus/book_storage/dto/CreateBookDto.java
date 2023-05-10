@@ -9,6 +9,7 @@ import ru.otus.book_storage.models.Author;
 import ru.otus.book_storage.models.Book;
 import ru.otus.book_storage.models.Genre;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -24,9 +25,13 @@ public class CreateBookDto {
     @JsonProperty("title")
     private String title;
     @JsonProperty("authorId")
-    private Long authorId;
+    @NotNull(message = "Author id cannot be null!")
+    @NotBlank(message = "Author id cannot be empty!")
+    private String authorId;
     @JsonProperty("genreId")
-    private Long genreId;
+    @NotNull(message = "Genre id cannot be null!")
+    @NotBlank(message = "Genre id cannot be empty!")
+    private String genreId;
 
     public Book toDomainObject() {
         Genre genre = new Genre(genreId);

@@ -4,35 +4,33 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.DocumentReference;
+import org.springframework.data.mongodb.core.mapping.Field;
 
-import javax.persistence.*;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Entity
-@Table(name = "books")
+@Document
 public class Book {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
-    @Column(name = "title")
+    private String id;
+    @Field(value = "title")
     private String title;
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "genre_id")
+
+    @Field(value = "genre")
     private Genre genre;
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "author_id")
+
+    @Field(value = "author")
     private Author author;
 
-    @OneToMany(fetch = FetchType.LAZY,
-            mappedBy = "book",
-            orphanRemoval = true,
-            cascade = CascadeType.REMOVE)
-    private List<Comment> comments;
+    @DocumentReference
+    private Set<Comment> comments = new HashSet<>();
 
     @Override
     public String toString() {

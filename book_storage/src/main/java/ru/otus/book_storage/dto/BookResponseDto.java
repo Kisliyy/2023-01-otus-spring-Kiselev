@@ -7,7 +7,7 @@ import ru.otus.book_storage.models.Book;
 @NoArgsConstructor
 @Data
 public class BookResponseDto {
-    private Long id;
+    private String id;
     private String title;
     private String genreName;
 
