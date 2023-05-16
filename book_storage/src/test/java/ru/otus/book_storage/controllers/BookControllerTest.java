@@ -9,9 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import ru.otus.book_storage.config.SecurityConfig;
 import ru.otus.book_storage.dto.CreateBookDto;
 import ru.otus.book_storage.dto.UpdateBookDto;
 import ru.otus.book_storage.exceptions.NotFoundException;
@@ -25,8 +27,9 @@ import java.util.List;
 
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
-@WebMvcTest(value = BookController.class)
+@WebMvcTest(value = {BookController.class, SecurityConfig.class})
 class BookControllerTest {
     @MockBean
     private BookService bookService;
@@ -60,6 +63,9 @@ class BookControllerTest {
 
 
     @Test
+    @WithMockUser(
+            username = "user"
+    )
     void shouldReturnCorrectListBookDto() throws Exception {
         List<Book> bookList = List.of(book);
         when(bookService.getAllBook()).thenReturn(bookList);
@@ -81,6 +87,9 @@ class BookControllerTest {
     }
 
     @Test
+    @WithMockUser(
+            username = "user"
+    )
     void shouldReturnFindBookDto() throws Exception {
         when(bookService.getById(bookId)).thenReturn(book);
         final String url = "/books/" + bookId;
@@ -99,6 +108,9 @@ class BookControllerTest {
     }
 
     @Test
+    @WithMockUser(
+            username = "user"
+    )
     void shouldReturnNotFoundByFoundBookException() throws Exception {
         String message = "Book not found!";
         when(bookService.getById(any())).thenThrow(new NotFoundException(message));
@@ -115,6 +127,9 @@ class BookControllerTest {
     }
 
     @Test
+    @WithMockUser(
+            username = "user"
+    )
     void shouldAddNewBookTest() throws Exception {
         CreateBookDto createBookDto = new CreateBookDto(title, authorId, genreId);
         Book toDomainObject = createBookDto.toDomainObject();
@@ -138,11 +153,15 @@ class BookControllerTest {
     }
 
     @Test
+    @WithMockUser(
+            username = "user"
+    )
     void shouldReturnExceptionByAddNewBookTest() throws Exception {
         CreateBookDto createBookDto = new CreateBookDto(null, authorId, genreId);
         this.mockMvc
                 .perform(
-                        MockMvcRequestBuilders.post("/books")
+                        MockMvcRequestBuilders
+                                .post("/books")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectToJson(createBookDto))
                 )
@@ -156,18 +175,26 @@ class BookControllerTest {
     }
 
     @Test
+    @WithMockUser(
+            username = "user"
+    )
     void shouldDeleteBookTest() throws Exception {
         doNothing()
                 .when(bookService)
                 .deleteById(bookId);
 
         this.mockMvc
-                .perform(MockMvcRequestBuilders.delete("/books")
-                        .param("id", String.valueOf(bookId)))
+                .perform(MockMvcRequestBuilders
+                        .delete("/books")
+                        .param("id", String.valueOf(bookId))
+                )
                 .andExpect(MockMvcResultMatchers.status().isOk());
     }
 
     @Test
+    @WithMockUser(
+            username = "user"
+    )
     void shouldUpdateBookTest() throws Exception {
         String newTitle = "newTitle";
         UpdateBookDto updateBookDto = new UpdateBookDto(bookId, newTitle, authorId, genreId);
@@ -178,7 +205,8 @@ class BookControllerTest {
 
         this.mockMvc
                 .perform(
-                        MockMvcRequestBuilders.put("/books")
+                        MockMvcRequestBuilders
+                                .put("/books")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectToJson(updateBookDto))
                 )
@@ -188,11 +216,15 @@ class BookControllerTest {
     }
 
     @Test
+    @WithMockUser(
+            username = "user"
+    )
     void shouldReturnExceptionByUpdateBookTest() throws Exception {
         UpdateBookDto updateBookDto = new UpdateBookDto(null, null, authorId, genreId);
         this.mockMvc
                 .perform(
-                        MockMvcRequestBuilders.put("/books")
+                        MockMvcRequestBuilders
+                                .put("/books")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectToJson(updateBookDto))
                 )
@@ -209,6 +241,86 @@ class BookControllerTest {
     private String objectToJson(Object object) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
         return objectMapper.writeValueAsString(object);
+    }
+
+    @Test
+    void shouldReturnIsRedirectionIfUserIsNotAuthenticatedByRequestAllBook() throws Exception {
+        mockMvc.perform(
+                        MockMvcRequestBuilders
+                                .get("/books")
+                                .contentType(MediaType.ALL)
+                )
+                .andExpect(
+                        MockMvcResultMatchers
+                                .status()
+                                .is3xxRedirection()
+                );
+    }
+
+    @Test
+    void shouldReturnIsRedirectionIfUserIsNotAuthenticatedByRequestFindByIdBook() throws Exception {
+        final String url = "/books/" + bookId;
+        this.mockMvc
+                .perform(
+                        MockMvcRequestBuilders
+                                .get(url)
+                                .contentType(MediaType.ALL)
+                )
+                .andExpect(
+                        MockMvcResultMatchers
+                                .status()
+                                .is3xxRedirection()
+                );
+    }
+
+    @Test
+    void shouldReturnIsRedirectionIfUserIsNotAuthenticatedByRequestAddBook() throws Exception {
+        CreateBookDto createBookDto = new CreateBookDto(null, authorId, genreId);
+        this.mockMvc
+                .perform(
+                        MockMvcRequestBuilders.post("/books")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .with(csrf())
+                                .content(objectToJson(createBookDto))
+                )
+                .andExpect(
+                        MockMvcResultMatchers
+                                .status()
+                                .is3xxRedirection()
+                );
+    }
+
+    @Test
+    void shouldReturnIsRedirectionIfUserIsNotAuthenticatedByRequestEditBook() throws Exception {
+        UpdateBookDto updateBookDto = new UpdateBookDto(null, title, authorId, genreId);
+        this.mockMvc
+                .perform(
+                        MockMvcRequestBuilders
+                                .put("/books")
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectToJson(updateBookDto))
+                )
+                .andExpect(
+                        MockMvcResultMatchers
+                                .status()
+                                .is3xxRedirection()
+                );
+    }
+
+    @Test
+    void shouldReturnIsRedirectionIfUserIsNotAuthenticatedByRequestDeleteBook() throws Exception {
+        this.mockMvc
+                .perform(MockMvcRequestBuilders
+                        .delete("/books")
+                        .with(csrf())
+                        .param("id", String.valueOf(bookId))
+                )
+                .andExpect(
+                        MockMvcResultMatchers
+                                .status()
+                                .is3xxRedirection()
+                );
     }
 
 }

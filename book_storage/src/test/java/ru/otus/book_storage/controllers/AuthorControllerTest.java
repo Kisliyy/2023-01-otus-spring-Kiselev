@@ -6,9 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import ru.otus.book_storage.config.SecurityConfig;
 import ru.otus.book_storage.models.Author;
 import ru.otus.book_storage.service.author.AuthorService;
 
@@ -16,7 +18,7 @@ import java.util.List;
 
 import static org.mockito.Mockito.*;
 
-@WebMvcTest(value = AuthorController.class)
+@WebMvcTest(value = {AuthorController.class, SecurityConfig.class})
 class AuthorControllerTest {
 
     @MockBean
@@ -27,6 +29,9 @@ class AuthorControllerTest {
 
 
     @Test
+    @WithMockUser(
+            username = "user"
+    )
     void shouldReturnCorrectListAuthorsDto() throws Exception {
         final Long authorId = 1000L;
         final String firstName = "firstName";
@@ -47,5 +52,20 @@ class AuthorControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].lastName", Matchers.is(lastName)));
 
         verify(authorService, times(1)).getAll();
+    }
+
+
+    @Test
+    void shouldReturnIsRedirectionIfUserIsNotAuthenticated() throws Exception {
+        mockMvc.perform(
+                        MockMvcRequestBuilders
+                                .get("/authors")
+                                .contentType(MediaType.ALL)
+                )
+                .andExpect(
+                        MockMvcResultMatchers
+                                .status()
+                                .is3xxRedirection()
+                );
     }
 }
