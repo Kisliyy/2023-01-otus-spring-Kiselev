@@ -29,10 +29,10 @@
             const genreInput = $("#genreId option:selected").attr("id")
             const authorInput = $("#authorId option:selected").attr("id")
             const book = {
-                id: String(bookId),
+                id: Number(bookId),
                 title: String(titleInput),
-                authorId: String(authorInput),
-                genreId: String(genreInput)
+                authorId: Number(authorInput),
+                genreId: Number(genreInput)
             }
             fetch("/books", {
                 method: 'PUT',
@@ -61,7 +61,7 @@
 <form id="edit-form" action="editBook.html" th:action="@{/edit(id=${bookId})}" th:method="PUT">
 
     <div class="row">
-        <input id="bookId" hidden="hidden" name="bookId" type="text" readonly="readonly" th:value="${bookId}" value="1"/>
+        <input id="bookId" hidden name="bookId" type="text" readonly="readonly" th:value="${bookId}" value="1"/>
     </div>
 
     <h3>Book Info:</h3>

@@ -1,51 +1,71 @@
 package ru.otus.book_storage.controllers;
 
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.web.reactive.server.WebTestClient;
-import reactor.core.publisher.Flux;
-import ru.otus.book_storage.dao.author.AuthorRepository;
-import ru.otus.book_storage.dto.AuthorResponseDto;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import ru.otus.book_storage.config.SecurityConfig;
 import ru.otus.book_storage.models.Author;
+import ru.otus.book_storage.service.author.AuthorService;
 
 import java.util.List;
 
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
-@WebFluxTest(controllers = AuthorController.class)
+@WebMvcTest(value = {AuthorController.class, SecurityConfig.class})
 class AuthorControllerTest {
 
     @MockBean
-    private AuthorRepository authorRepository;
+    private AuthorService authorService;
 
     @Autowired
-    private WebTestClient webTestClient;
+    private MockMvc mockMvc;
 
 
     @Test
-    void shouldReturnFluxAuthorsDto() {
-        final String authorId = "1000L";
+    @WithMockUser(
+            username = "user"
+    )
+    void shouldReturnCorrectListAuthorsDto() throws Exception {
+        final Long authorId = 1000L;
         final String firstName = "firstName";
         final String lastName = "lastName";
         Author author = new Author(authorId, firstName, lastName);
-        AuthorResponseDto authorResponseDto = new AuthorResponseDto(author);
         List<Author> authorList = List.of(author);
 
-        when(authorRepository.findAll()).thenReturn(Flux.fromIterable(authorList));
+        when(authorService.getAll()).thenReturn(authorList);
 
-        webTestClient.get()
-                .uri("/authors")
-                .exchange()
-                .expectStatus()
-                .isOk()
-                .expectBodyList(AuthorResponseDto.class)
-                .hasSize(1)
-                .contains(authorResponseDto);
+        mockMvc
+                .perform(
+                        MockMvcRequestBuilders.get("/authors")
+                                .contentType(MediaType.ALL))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.length()", Matchers.is(authorList.size())))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].firstName", Matchers.is(firstName)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].lastName", Matchers.is(lastName)));
 
-        Mockito.verify(authorRepository, times(1)).findAll();
+        verify(authorService, times(1)).getAll();
+    }
+
+
+    @Test
+    void shouldReturnIsRedirectionIfUserIsNotAuthenticated() throws Exception {
+        mockMvc.perform(
+                        MockMvcRequestBuilders
+                                .get("/authors")
+                                .contentType(MediaType.ALL)
+                )
+                .andExpect(
+                        MockMvcResultMatchers
+                                .status()
+                                .is3xxRedirection()
+                );
     }
 }

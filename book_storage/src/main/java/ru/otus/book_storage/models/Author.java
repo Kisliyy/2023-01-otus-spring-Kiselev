@@ -4,32 +4,27 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
+
+import javax.persistence.*;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Document
+@Entity
+@Table(name = "authors")
 public class Author {
     @Id
-    private String id;
-
-    @Field(value = "first_name")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
+    @Column(name = "first_name", nullable = false)
     private String firstName;
-
-    @Field(value = "last_name")
+    @Column(name = "last_name", nullable = false)
     private String lastName;
 
-    public Author(String id) {
+    public Author(long id) {
         this.id = id;
-    }
-
-    public Author(String firstName, String lastName) {
-        this.firstName = firstName;
-        this.lastName = lastName;
     }
 
     @Override

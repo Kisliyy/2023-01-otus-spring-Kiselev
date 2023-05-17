@@ -2,54 +2,94 @@ package ru.otus.book_storage.controllers;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.reactive.server.WebTestClient;
-import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import ru.otus.book_storage.config.SecurityConfig;
 
-import java.net.URI;
-
-@WebFluxTest(controllers = PageController.class)
+@WebMvcTest(value = {PageController.class, SecurityConfig.class})
 class PageControllerTest {
 
     @Autowired
-    private WebTestClient webTestClient;
+    private MockMvc mockMvc;
 
     @Test
-    void allBookVerifyTitlePageTest() {
-        webTestClient.get()
-                .uri("/")
-                .exchange()
-                .expectStatus().isOk()
-                .expectHeader().contentType(MediaType.TEXT_HTML)
-                .expectBody().xpath("//head/title/text()", "List of all books").exists();
+    @WithMockUser(
+            username = "user"
+    )
+    void allBookVerifyNamePageTest() throws Exception {
+        this.mockMvc
+                .perform(MockMvcRequestBuilders.get("/"))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.view().name("allBook"));
     }
 
 
     @Test
-    void createBookVerifyTitlePageTest() {
-        webTestClient.get()
-                .uri("/add")
-                .exchange()
-                .expectStatus().isOk()
-                .expectHeader().contentType(MediaType.TEXT_HTML)
-                .expectBody().xpath("//head/title/text()", "Create book").exists();
+    @WithMockUser(
+            username = "user"
+    )
+    void createBookVerifyNamePageTest() throws Exception {
+        this.mockMvc
+                .perform(MockMvcRequestBuilders.get("/add"))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.view().name("createBook"));
     }
 
     @Test
-    void editBookVerifyTitlePageTest() {
-        String bookId = "123";
-        URI uri = UriComponentsBuilder
-                .fromPath("/edit")
-                .queryParam("id", bookId)
-                .build()
-                .toUri();
+    @WithMockUser(
+            username = "user"
+    )
+    void editBookVerifyNamePageTest() throws Exception {
+        long bookId = 123;
 
-        webTestClient.get()
-                .uri(uri)
-                .exchange()
-                .expectStatus().isOk()
-                .expectHeader().contentType(MediaType.TEXT_HTML)
-                .expectBody().xpath("//head/title/text()", "Edit book").exists();
+        this.mockMvc
+                .perform(MockMvcRequestBuilders.get("/edit").param("id", String.valueOf(bookId)))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.view().name("editBook"));
+    }
+
+
+    @Test
+    void shouldOnAllBookPageReturnIsRedirectionIfUserIsNotAuthenticated() throws Exception {
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/")
+                )
+                .andExpect(
+                        MockMvcResultMatchers
+                                .status()
+                                .is3xxRedirection()
+                );
+    }
+
+    @Test
+    void shouldOnEditBookPageReturnIsRedirectionIfUserIsNotAuthenticated() throws Exception {
+        long bookId = 123;
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/edit").param("id", String.valueOf(bookId))
+                )
+                .andExpect(
+                        MockMvcResultMatchers
+                                .status()
+                                .is3xxRedirection()
+                );
+    }
+
+    @Test
+    void shouldOnAddBookPageReturnIsRedirectionIfUserIsNotAuthenticated() throws Exception {
+        mockMvc.perform(
+                        MockMvcRequestBuilders.get("/add")
+                )
+                .andExpect(
+                        MockMvcResultMatchers
+                                .status()
+                                .is3xxRedirection()
+                );
     }
 }

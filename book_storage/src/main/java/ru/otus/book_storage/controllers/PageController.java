@@ -19,7 +19,7 @@ public class PageController {
     }
 
     @GetMapping(value = "/edit")
-    public String editBook(@RequestParam(name = "id") String id, Model model) {
+    public String editBook(@RequestParam(name = "id") Long id, Model model) {
         model.addAttribute("bookId", id);
         return "editBook";
     }

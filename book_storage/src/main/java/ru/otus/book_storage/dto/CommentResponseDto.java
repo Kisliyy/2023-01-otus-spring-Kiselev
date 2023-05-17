@@ -9,7 +9,7 @@ import ru.otus.book_storage.models.Comment;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CommentResponseDto {
-    private String id;
+    private Long id;
     private String text;
 
     public CommentResponseDto(Comment comment) {
