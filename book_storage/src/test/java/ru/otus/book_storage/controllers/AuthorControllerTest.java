@@ -30,7 +30,8 @@ class AuthorControllerTest {
 
     @Test
     @WithMockUser(
-            username = "user"
+            username = "user",
+            roles = "USER"
     )
     void shouldReturnCorrectListAuthorsDto() throws Exception {
         final Long authorId = 1000L;

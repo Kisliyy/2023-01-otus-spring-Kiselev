@@ -27,7 +27,6 @@ import java.util.List;
 
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 @WebMvcTest(value = {BookController.class, SecurityConfig.class})
 class BookControllerTest {
@@ -64,7 +63,8 @@ class BookControllerTest {
 
     @Test
     @WithMockUser(
-            username = "user"
+            username = "user",
+            roles = "USER"
     )
     void shouldReturnCorrectListBookDto() throws Exception {
         List<Book> bookList = List.of(book);
@@ -88,7 +88,8 @@ class BookControllerTest {
 
     @Test
     @WithMockUser(
-            username = "user"
+            username = "user",
+            roles = "USER"
     )
     void shouldReturnFindBookDto() throws Exception {
         when(bookService.getById(bookId)).thenReturn(book);
@@ -109,7 +110,8 @@ class BookControllerTest {
 
     @Test
     @WithMockUser(
-            username = "user"
+            username = "user",
+            roles = "USER"
     )
     void shouldReturnNotFoundByFoundBookException() throws Exception {
         String message = "Book not found!";
@@ -128,7 +130,8 @@ class BookControllerTest {
 
     @Test
     @WithMockUser(
-            username = "user"
+            username = "user",
+            roles = "USER"
     )
     void shouldAddNewBookTest() throws Exception {
         CreateBookDto createBookDto = new CreateBookDto(title, authorId, genreId);
@@ -154,7 +157,8 @@ class BookControllerTest {
 
     @Test
     @WithMockUser(
-            username = "user"
+            username = "user",
+            roles = "USER"
     )
     void shouldReturnExceptionByAddNewBookTest() throws Exception {
         CreateBookDto createBookDto = new CreateBookDto(null, authorId, genreId);
@@ -176,7 +180,8 @@ class BookControllerTest {
 
     @Test
     @WithMockUser(
-            username = "user"
+            username = "user",
+            roles = "USER"
     )
     void shouldDeleteBookTest() throws Exception {
         doNothing()
@@ -193,7 +198,8 @@ class BookControllerTest {
 
     @Test
     @WithMockUser(
-            username = "user"
+            username = "user",
+            roles = "USER"
     )
     void shouldUpdateBookTest() throws Exception {
         String newTitle = "newTitle";
@@ -217,7 +223,8 @@ class BookControllerTest {
 
     @Test
     @WithMockUser(
-            username = "user"
+            username = "user",
+            roles = "USER"
     )
     void shouldReturnExceptionByUpdateBookTest() throws Exception {
         UpdateBookDto updateBookDto = new UpdateBookDto(null, null, authorId, genreId);
@@ -280,7 +287,6 @@ class BookControllerTest {
                 .perform(
                         MockMvcRequestBuilders.post("/books")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .with(csrf())
                                 .content(objectToJson(createBookDto))
                 )
                 .andExpect(
@@ -297,7 +303,6 @@ class BookControllerTest {
                 .perform(
                         MockMvcRequestBuilders
                                 .put("/books")
-                                .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectToJson(updateBookDto))
                 )
@@ -313,13 +318,72 @@ class BookControllerTest {
         this.mockMvc
                 .perform(MockMvcRequestBuilders
                         .delete("/books")
-                        .with(csrf())
                         .param("id", String.valueOf(bookId))
                 )
                 .andExpect(
                         MockMvcResultMatchers
                                 .status()
                                 .is3xxRedirection()
+                );
+    }
+
+
+    @Test
+    @WithMockUser(
+            username = "user",
+            roles = "ADMIN"
+    )
+    void shouldReturnIsForbiddenIfUserIsAdminByRequestAddBook() throws Exception {
+        CreateBookDto createBookDto = new CreateBookDto(null, authorId, genreId);
+        this.mockMvc
+                .perform(
+                        MockMvcRequestBuilders.post("/books")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectToJson(createBookDto))
+                )
+                .andExpect(
+                        MockMvcResultMatchers
+                                .status()
+                                .isForbidden()
+                );
+    }
+
+    @Test
+    @WithMockUser(
+            username = "user",
+            roles = "ADMIN"
+    )
+    void shouldReturnIsForbiddenIfUserIsAdminByRequestEditBook() throws Exception {
+        UpdateBookDto updateBookDto = new UpdateBookDto(null, title, authorId, genreId);
+        this.mockMvc
+                .perform(
+                        MockMvcRequestBuilders
+                                .put("/books")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectToJson(updateBookDto))
+                )
+                .andExpect(
+                        MockMvcResultMatchers
+                                .status()
+                                .isForbidden()
+                );
+    }
+
+    @Test
+    @WithMockUser(
+            username = "user",
+            roles = "ADMIN"
+    )
+    void shouldReturnIsForbiddenIfUserIsAdminByRequestDeleteBook() throws Exception {
+        this.mockMvc
+                .perform(MockMvcRequestBuilders
+                        .delete("/books")
+                        .param("id", String.valueOf(bookId))
+                )
+                .andExpect(
+                        MockMvcResultMatchers
+                                .status()
+                                .isForbidden()
                 );
     }
 

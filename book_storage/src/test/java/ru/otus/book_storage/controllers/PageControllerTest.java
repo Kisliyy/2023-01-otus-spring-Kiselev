@@ -18,7 +18,8 @@ class PageControllerTest {
 
     @Test
     @WithMockUser(
-            username = "user"
+            username = "user",
+            roles = "USER"
     )
     void allBookVerifyNamePageTest() throws Exception {
         this.mockMvc
@@ -31,7 +32,8 @@ class PageControllerTest {
 
     @Test
     @WithMockUser(
-            username = "user"
+            username = "user",
+            roles = "USER"
     )
     void createBookVerifyNamePageTest() throws Exception {
         this.mockMvc
@@ -43,7 +45,8 @@ class PageControllerTest {
 
     @Test
     @WithMockUser(
-            username = "user"
+            username = "user",
+            roles = "USER"
     )
     void editBookVerifyNamePageTest() throws Exception {
         long bookId = 123;
