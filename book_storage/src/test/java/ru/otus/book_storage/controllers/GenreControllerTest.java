@@ -30,7 +30,8 @@ class GenreControllerTest {
 
     @Test
     @WithMockUser(
-            username = "user"
+            username = "user",
+            roles = "USER"
     )
     void shouldReturnCorrectListGenresDto() throws Exception {
         final Long genreId = 1000L;
