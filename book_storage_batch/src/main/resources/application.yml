@@ -1,0 +1,22 @@
+server:
+  port: 8085
+spring:
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:5437/book_storage
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: book_storage_output
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: always
