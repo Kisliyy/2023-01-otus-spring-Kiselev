@@ -23,15 +23,15 @@
 
         <insert tableName="genres">
             <column name="id" value="1"/>
-            <column name="genre" value="poem"/>
+            <column name="name" value="poem"/>
         </insert>
         <insert tableName="genres">
             <column name="id" value="2"/>
-            <column name="genre" value="novel"/>
+            <column name="name" value="novel"/>
         </insert>
         <insert tableName="genres">
             <column name="id" value="3"/>
-            <column name="genre" value="comedy"/>
+            <column name="name" value="comedy"/>
         </insert>
 
         <insert tableName="books">
