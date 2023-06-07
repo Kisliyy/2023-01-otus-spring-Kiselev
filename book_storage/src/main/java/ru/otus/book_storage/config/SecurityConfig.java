@@ -20,6 +20,7 @@ public class SecurityConfig {
                 .csrf().disable()
                 .authorizeHttpRequests(
                         (authorize) -> authorize
+                                .antMatchers("/actuator/**").hasAnyRole("ADMIN")
                                 .antMatchers("/webjars/**").permitAll()
                                 .antMatchers("/", "/add", "/edit").hasAnyRole("ADMIN", "USER")
                                 .antMatchers("/authors").hasAnyRole("ADMIN", "USER")

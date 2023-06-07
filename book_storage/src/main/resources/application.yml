@@ -12,3 +12,18 @@ spring:
     hibernate:
       ddl-auto: none
     show-sql: false
+  jmx:
+    enabled: true
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, logfile, metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+      roles: ADMIN
+
+logging:
+  file:
+    name: log/book_storage_log.log
