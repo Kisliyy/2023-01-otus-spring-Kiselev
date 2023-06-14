@@ -125,5 +125,6 @@
                 </configuration>
             </plugin>
         </plugins>
+        <finalName>book_storage</finalName>
     </build>
 </project>
