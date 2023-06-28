@@ -1,5 +1,6 @@
 package ru.otus.book_storage.service.comment;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +24,7 @@ public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
 
     @Override
+    @CircuitBreaker(name = "CommentService_saveComment", fallbackMethod = "fallbackSaveComment")
     public Comment saveComment(String text, long bookId) {
         Book bookById = bookService.getById(bookId);
         Comment savedComment = Comment.builder()
