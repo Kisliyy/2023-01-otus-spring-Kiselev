@@ -1,5 +1,8 @@
 package ru.otus.book_storage.controllers;
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -12,6 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @ControllerAdvice
+@Slf4j
 public class ExceptionHandlerController {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -25,6 +29,15 @@ public class ExceptionHandlerController {
         return ResponseEntity
                 .badRequest()
                 .body(errors);
+    }
+
+    @ExceptionHandler(CallNotPermittedException.class)
+    public ResponseEntity<ExceptionDto> handleCallNotPermittedException(CallNotPermittedException ex) {
+        log.error(ex.getMessage());
+        var exceptionMessageResponse = new ExceptionDto("The called command is not working at the moment");
+        return ResponseEntity
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(exceptionMessageResponse);
     }
 
     @ExceptionHandler(NotFoundException.class)

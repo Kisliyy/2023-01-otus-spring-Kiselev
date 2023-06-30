@@ -23,7 +23,51 @@ management:
     health:
       show-details: when_authorized
       roles: ADMIN
-
+  health:
+    circuitbreakers:
+      enabled: true
 logging:
   file:
     name: log/book_storage_log.log
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        failure-rate-threshold: 60
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 15
+        wait-duration-in-open-state: 5s
+        permitted-number-of-calls-in-half-open-state: 3
+      service:
+        failure-rate-threshold: 30
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 15
+        wait-duration-in-open-state: 5s
+        permitted-number-of-calls-in-half-open-state: 3
+        ignore-exceptions:
+          - ru.otus.book_storage.exceptions.NotFoundException
+    instances:
+      PageController_circuitbreaker:
+        base-config: default
+      Service_circuitbreaker:
+        base-config: default
+      UserService_circuitbreaker:
+        base-config: default
+        ignore-exceptions:
+          - org.springframework.security.core.userdetails.UsernameNotFoundException
+          - org.springframework.security.authentication.BadCredentialsException
+  retry:
+    metrics:
+      enabled: true
+      legacy:
+        enabled: true
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: 1
+    instances:
+      Service_circuitbreaker:
+        base-config: default

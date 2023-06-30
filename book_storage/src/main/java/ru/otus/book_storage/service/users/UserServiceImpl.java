@@ -1,5 +1,6 @@
 package ru.otus.book_storage.service.users;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,6 +19,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
+    @CircuitBreaker(name = "UserService_circuitbreaker")
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         if (StringUtils.hasText(username)) {
             Optional<User> byUsername = userRepository.findByUsername(username);
